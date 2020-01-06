@@ -14,7 +14,7 @@
 #define HEALTH_BAR_WIDTH 1
 #define HEALTH_BAR_SPACING 0
 
-#define MAX_FRAMES 2000
+#define MAX_FRAMES 500
 
 //Global performance timer
 #define REF_PERFORMANCE 73466 //UPDATE THIS WITH YOUR REFERENCE PERFORMANCE (see console after 2k frames)
@@ -257,20 +257,22 @@ void Game::Draw()
     }
 
     //Draw sorted health bars, loop door beide teams heen.
-	// 0 = blauw.
-	// 1 = rood.
+    // 0 = blauw.
+    // 1 = rood.
     for (int t = 0; t < 2; t++)
     {
-		// pak het aantal tanks dat in dat team zit.
+        // pak het aantal tanks dat in dat team zit.
         const UINT16 NUM_TANKS = ((t < 1) ? NUM_TANKS_BLUE : NUM_TANKS_RED);
-		// pak de begin index van dat team in de tanks array.
+        // pak de begin index van dat team in de tanks array.
         const UINT16 begin = ((t < 1) ? 0 : NUM_TANKS_BLUE);
-		// pak de end index van dat team in de tanks array.
-		const UINT16 end = begin + NUM_TANKS;
-		// maak een array waarin de gesorteerde tanks komen.
+        // pak de end index van dat team in de tanks array.
+        const UINT16 end = begin + NUM_TANKS;
+        // maak een array waarin de gesorteerde tanks komen.
         std::vector<const Tank*> sorted_tanks;
-		// roep de insertion sort aan met de net gemaakte waarden.
-        insertion_sort_tanks_health(tanks, sorted_tanks, begin, end);
+        // roep de insertion sort aan met de net gemaakte waarden.
+        //insertion_sort_tanks_health(tanks, sorted_tanks, begin, end);
+        quick_sort_tanks_health(begin, end-1);
+
 
         for (int i = 0; i < NUM_TANKS; i++)
         {
@@ -280,7 +282,7 @@ void Game::Draw()
             int health_bar_end_y = (t < 1) ? HEALTH_BAR_HEIGHT : SCRHEIGHT - 1;
 
             screen->Bar(health_bar_start_x, health_bar_start_y, health_bar_end_x, health_bar_end_y, REDMASK);
-            screen->Bar(health_bar_start_x, health_bar_start_y + (int)((double)HEALTH_BAR_HEIGHT * (1 - ((double)sorted_tanks.at(i)->health / (double)TANK_MAX_HEALTH))), health_bar_end_x, health_bar_end_y, GREENMASK);
+            screen->Bar(health_bar_start_x, health_bar_start_y + (int)((double)HEALTH_BAR_HEIGHT * (1 - ((double)tanks.at(begin+i).health / (double)TANK_MAX_HEALTH))), health_bar_end_x, health_bar_end_y, GREENMASK);
         }
     }
 }
@@ -290,16 +292,16 @@ void Game::Draw()
 // -----------------------------------------------------------
 void Tmpl8::Game::insertion_sort_tanks_health(const std::vector<Tank>& original, std::vector<const Tank*>& sorted_tanks, UINT16 begin, UINT16 end)
 {
-	// kijk door hoeveel tanks je heen moet.
+    // kijk door hoeveel tanks je heen moet.
     const UINT16 NUM_TANKS = end - begin;
-	// maak zoveel ruimte vrij in de sorted_tanks array.
+    // maak zoveel ruimte vrij in de sorted_tanks array.
     sorted_tanks.reserve(NUM_TANKS);
-	// stop de eerste tank daarin.
+    // stop de eerste tank daarin.
     sorted_tanks.emplace_back(&original.at(begin));
-	// loop door de rest van de tanks.
+    // loop door de rest van de tanks.
     for (int i = begin + 1; i < (begin + NUM_TANKS); i++)
     {
-		// pak de volgende tank uit de orgineele array.
+        // pak de volgende tank uit de orgineele array.
         const Tank& current_tank = original.at(i);
 
         for (int s = (int)sorted_tanks.size() - 1; s >= 0; s--)
@@ -320,6 +322,45 @@ void Tmpl8::Game::insertion_sort_tanks_health(const std::vector<Tank>& original,
         }
     }
 }
+
+int Tmpl8::Game::partition(int begin, int end)
+{
+    // assign de pivot met de waarde aan het einde.
+    int pivot = tanks[end].health;
+    // assign de pivot index met de waarde aan het begin.
+    int p_index = begin;
+    // loop door alle waarden behalve de pivot.
+    for (int i = begin; i < end; i++)
+    {
+        // als de waarde lager of gelijk is aan de pivot.
+        if (tanks[i].health <= pivot)
+        {
+            // verwissel deze waarden.
+            std::swap(tanks[i], tanks[p_index]);
+            // verhoog de p_index met 1
+            p_index++;
+        }
+    }
+    // verwissel het laatste element met de pivot index.
+    std::swap(tanks[end], tanks[p_index]);
+    // return de pivot index
+    return p_index;
+}
+
+void Tmpl8::Game::quick_sort_tanks_health(int begin, int end)
+{
+    if (begin < end)
+    {
+        // krijg de correcte index van het laatste element.
+        int p_index = partition( begin, end);
+        // voer de quicksort uit aan de linker kan van de p_index
+        quick_sort_tanks_health( begin, p_index - 1);
+        // voer de quicksort uit aan de rechter kan van de p_index
+        quick_sort_tanks_health( p_index + 1, end);
+    }
+}
+
+
 
 // -----------------------------------------------------------
 // When we reach MAX_FRAMES print the duration and speedup multiplier
