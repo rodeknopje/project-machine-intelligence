@@ -256,14 +256,21 @@ void Game::Draw()
         explosion.Draw(screen);
     }
 
-    //Draw sorted health bars
+    //Draw sorted health bars, loop door beide teams heen.
+	// 0 = blauw.
+	// 1 = rood.
     for (int t = 0; t < 2; t++)
     {
+		// pak het aantal tanks dat in dat team zit.
         const UINT16 NUM_TANKS = ((t < 1) ? NUM_TANKS_BLUE : NUM_TANKS_RED);
-
+		// pak de begin index van dat team in de tanks array.
         const UINT16 begin = ((t < 1) ? 0 : NUM_TANKS_BLUE);
+		// pak de end index van dat team in de tanks array.
+		const UINT16 end = begin + NUM_TANKS;
+		// maak een array waarin de gesorteerde tanks komen.
         std::vector<const Tank*> sorted_tanks;
-        insertion_sort_tanks_health(tanks, sorted_tanks, begin, begin + NUM_TANKS);
+		// roep de insertion sort aan met de net gemaakte waarden.
+        insertion_sort_tanks_health(tanks, sorted_tanks, begin, end);
 
         for (int i = 0; i < NUM_TANKS; i++)
         {
@@ -283,12 +290,16 @@ void Game::Draw()
 // -----------------------------------------------------------
 void Tmpl8::Game::insertion_sort_tanks_health(const std::vector<Tank>& original, std::vector<const Tank*>& sorted_tanks, UINT16 begin, UINT16 end)
 {
+	// kijk door hoeveel tanks je heen moet.
     const UINT16 NUM_TANKS = end - begin;
+	// maak zoveel ruimte vrij in de sorted_tanks array.
     sorted_tanks.reserve(NUM_TANKS);
+	// stop de eerste tank daarin.
     sorted_tanks.emplace_back(&original.at(begin));
-
+	// loop door de rest van de tanks.
     for (int i = begin + 1; i < (begin + NUM_TANKS); i++)
     {
+		// pak de volgende tank uit de orgineele array.
         const Tank& current_tank = original.at(i);
 
         for (int s = (int)sorted_tanks.size() - 1; s >= 0; s--)
