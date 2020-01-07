@@ -174,18 +174,23 @@ void Game::Update(float deltaTime)
         rocket.Tick();
 
         //Check if rocket collides with enemy tank, spawn explosion and if tank is destroyed spawn a smoke plume
-        for (Tank& tank : tanks)
+        for (int i=0;i<sorted_tanks.size();i++)
         {
-            if (tank.active && (tank.allignment != rocket.allignment) && rocket.Intersects(tank.position, tank.collision_radius))
-            {
-                explosions.push_back(Explosion(&explosion, tank.position));
+            Tank* tank = sorted_tanks.at(i);
 
-                if (tank.hit(ROCKET_HIT_VALUE))
-                {
-                    smokes.push_back(Smoke(smoke, tank.position - vec2(0, 48)));
+            if (tank->active && (tank->allignment != rocket.allignment) && rocket.Intersects(tank->position, tank->collision_radius))
+            {
+                explosions.push_back(Explosion(&explosion, tank->position));
+
+                if (tank->hit(ROCKET_HIT_VALUE))
+                {                  
+                    hitted_tanks.push_back(i);
+
+                    smokes.push_back(Smoke(smoke, tank->position - vec2(0, 48)));
                 }
 
                 rocket.active = false;
+
                 break;
             }
         }

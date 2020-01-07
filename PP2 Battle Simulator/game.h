@@ -50,6 +50,7 @@ class Game
 
     vector<Tank> tanks;
     vector<Tank*> sorted_tanks;
+    vector<int> hitted_tanks;
 
     vector<Rocket> rockets;
     vector<Smoke> smokes;
