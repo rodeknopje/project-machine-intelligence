@@ -14,7 +14,7 @@
 #define HEALTH_BAR_WIDTH 1
 #define HEALTH_BAR_SPACING 0
 
-#define MAX_FRAMES 500
+#define MAX_FRAMES 2000
 
 //Global performance timer
 #define REF_PERFORMANCE 73466 //UPDATE THIS WITH YOUR REFERENCE PERFORMANCE (see console after 2k frames)
@@ -47,8 +47,7 @@ const static float tank_radius = 12.f;
 const static float rocket_radius = 10.f;
 
 // -----------------------------------------------------------
-// Initialize the application
-// -----------------------------------------------------------
+// Initialize the ape--------------------------------------------
 void Game::Init()
 {
     frame_count_font = new Font("assets/digital_small.png", "ABCDEFGHIJKLMNOPQRSTUVWXYZ:?!=-0123456789.");
@@ -76,6 +75,11 @@ void Game::Init()
     {
         tanks.push_back(Tank(start_red_x + ((i % max_rows) * spacing), start_red_y + ((i / max_rows) * spacing), RED, &tank_red, &smoke, 80, 80, tank_radius, TANK_MAX_HEALTH, TANK_MAX_SPEED));
     }
+
+    for (int i = 0; i < tanks.size(); i++)
+    {
+        sorted_tanks.push_back(&tanks.at(i));
+	}
 
     particle_beams.push_back(Particle_beam(vec2(SCRWIDTH / 2, SCRHEIGHT / 2), vec2(100, 50), &particle_beam_sprite, PARTICLE_BEAM_HIT_VALUE));
     particle_beams.push_back(Particle_beam(vec2(80, 80), vec2(100, 50), &particle_beam_sprite, PARTICLE_BEAM_HIT_VALUE));
@@ -270,9 +274,8 @@ void Game::Draw()
         // maak een array waarin de gesorteerde tanks komen.
         std::vector<const Tank*> sorted_tanks;
         // roep de insertion sort aan met de net gemaakte waarden.
-        //insertion_sort_tanks_health(tanks, sorted_tanks, begin, end);
-        quick_sort_tanks_health(begin, end-1);
-
+        insertion_sort_tanks_health(tanks, sorted_tanks, begin, end);
+        //quick_sort_tanks_health(begin, end - 1);
 
         for (int i = 0; i < NUM_TANKS; i++)
         {
@@ -282,7 +285,7 @@ void Game::Draw()
             int health_bar_end_y = (t < 1) ? HEALTH_BAR_HEIGHT : SCRHEIGHT - 1;
 
             screen->Bar(health_bar_start_x, health_bar_start_y, health_bar_end_x, health_bar_end_y, REDMASK);
-            screen->Bar(health_bar_start_x, health_bar_start_y + (int)((double)HEALTH_BAR_HEIGHT * (1 - ((double)tanks.at(begin+i).health / (double)TANK_MAX_HEALTH))), health_bar_end_x, health_bar_end_y, GREENMASK);
+            screen->Bar(health_bar_start_x, health_bar_start_y + (int)((double)HEALTH_BAR_HEIGHT * (1 - ((double)sorted_tanks.at(i)->health / (double)TANK_MAX_HEALTH))), health_bar_end_x, health_bar_end_y, GREENMASK);
         }
     }
 }
@@ -326,23 +329,23 @@ void Tmpl8::Game::insertion_sort_tanks_health(const std::vector<Tank>& original,
 int Tmpl8::Game::partition(int begin, int end)
 {
     // assign de pivot met de waarde aan het einde.
-    int pivot = tanks[end].health;
+    int pivot = sorted_tanks[end]->health;
     // assign de pivot index met de waarde aan het begin.
     int p_index = begin;
     // loop door alle waarden behalve de pivot.
     for (int i = begin; i < end; i++)
     {
         // als de waarde lager of gelijk is aan de pivot.
-        if (tanks[i].health <= pivot)
+        if (sorted_tanks[i]->health <= pivot)
         {
             // verwissel deze waarden.
-            std::swap(tanks[i], tanks[p_index]);
+            std::swap(sorted_tanks[i], sorted_tanks[p_index]);
             // verhoog de p_index met 1
             p_index++;
         }
     }
     // verwissel het laatste element met de pivot index.
-    std::swap(tanks[end], tanks[p_index]);
+    std::swap(sorted_tanks[end], sorted_tanks[p_index]);
     // return de pivot index
     return p_index;
 }
@@ -352,15 +355,13 @@ void Tmpl8::Game::quick_sort_tanks_health(int begin, int end)
     if (begin < end)
     {
         // krijg de correcte index van het laatste element.
-        int p_index = partition( begin, end);
+        int p_index = partition(begin, end);
         // voer de quicksort uit aan de linker kan van de p_index
-        quick_sort_tanks_health( begin, p_index - 1);
+        quick_sort_tanks_health(begin, p_index - 1);
         // voer de quicksort uit aan de rechter kan van de p_index
-        quick_sort_tanks_health( p_index + 1, end);
+        quick_sort_tanks_health(p_index + 1, end);
     }
 }
-
-
 
 // -----------------------------------------------------------
 // When we reach MAX_FRAMES print the duration and speedup multiplier

@@ -49,6 +49,8 @@ class Game
     Surface* screen;
 
     vector<Tank> tanks;
+    vector<Tank*> sorted_tanks;
+
     vector<Rocket> rockets;
     vector<Smoke> smokes;
     vector<Explosion> explosions;
