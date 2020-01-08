@@ -20,6 +20,8 @@ class Game
     void insertion_sort_tanks_health(const std::vector<Tank>& original, std::vector<const Tank*>& sorted_tanks, UINT16 begin, UINT16 end);
     int partition(int begin, int end);
     void quick_sort_tanks_health(int begin, int end);
+    void merlijn_sort();
+    bool hit_tank(int tank_index, int dmg);
     void MeasurePerformance();
 
 

@@ -79,7 +79,7 @@ void Game::Init()
     for (int i = 0; i < tanks.size(); i++)
     {
         sorted_tanks.push_back(&tanks.at(i));
-	}
+    }
 
     particle_beams.push_back(Particle_beam(vec2(SCRWIDTH / 2, SCRHEIGHT / 2), vec2(100, 50), &particle_beam_sprite, PARTICLE_BEAM_HIT_VALUE));
     particle_beams.push_back(Particle_beam(vec2(80, 80), vec2(100, 50), &particle_beam_sprite, PARTICLE_BEAM_HIT_VALUE));
@@ -174,7 +174,7 @@ void Game::Update(float deltaTime)
         rocket.Tick();
 
         //Check if rocket collides with enemy tank, spawn explosion and if tank is destroyed spawn a smoke plume
-        for (int i=0;i<sorted_tanks.size();i++)
+        for (int i = 0; i < sorted_tanks.size(); i++)
         {
             Tank* tank = sorted_tanks.at(i);
 
@@ -182,10 +182,8 @@ void Game::Update(float deltaTime)
             {
                 explosions.push_back(Explosion(&explosion, tank->position));
 
-                if (tank->hit(ROCKET_HIT_VALUE))
-                {                  
-                    hitted_tanks.push_back(i);
-
+                if (hit_tank(i, ROCKET_HIT_VALUE))
+                {
                     smokes.push_back(Smoke(smoke, tank->position - vec2(0, 48)));
                 }
 
@@ -207,13 +205,13 @@ void Game::Update(float deltaTime)
         //Damage all tanks within the damage window of the beam (the window is an axis-aligned bounding box)
         for (Tank& tank : tanks)
         {
-            if (tank.active && particle_beam.rectangle.intersectsCircle(tank.Get_Position(), tank.Get_collision_radius()))
-            {
-                if (tank.hit(particle_beam.damage))
-                {
-                    smokes.push_back(Smoke(smoke, tank.position - vec2(0, 48)));
-                }
-            }
+            //if (tank.active && particle_beam.rectangle.intersectsCircle(tank.Get_Position(), tank.Get_collision_radius()))
+            //{
+            //    if (tank.hit(particle_beam.damage))
+            //    {
+            //        smokes.push_back(Smoke(smoke, tank.position - vec2(0, 48)));
+            //    }
+            //}
         }
     }
 
@@ -268,6 +266,8 @@ void Game::Draw()
     //Draw sorted health bars, loop door beide teams heen.
     // 0 = blauw.
     // 1 = rood.
+    merlijn_sort();
+
     for (int t = 0; t < 2; t++)
     {
         // pak het aantal tanks dat in dat team zit.
@@ -277,10 +277,11 @@ void Game::Draw()
         // pak de end index van dat team in de tanks array.
         const UINT16 end = begin + NUM_TANKS;
         // maak een array waarin de gesorteerde tanks komen.
-        std::vector<const Tank*> sorted_tanks;
+        //std::vector<const Tank*> sorted_tanks;
         // roep de insertion sort aan met de net gemaakte waarden.
-        insertion_sort_tanks_health(tanks, sorted_tanks, begin, end);
+        //insertion_sort_tanks_health(tanks, sorted_tanks, begin, end);
         //quick_sort_tanks_health(begin, end - 1);
+        
 
         for (int i = 0; i < NUM_TANKS; i++)
         {
@@ -290,7 +291,7 @@ void Game::Draw()
             int health_bar_end_y = (t < 1) ? HEALTH_BAR_HEIGHT : SCRHEIGHT - 1;
 
             screen->Bar(health_bar_start_x, health_bar_start_y, health_bar_end_x, health_bar_end_y, REDMASK);
-            screen->Bar(health_bar_start_x, health_bar_start_y + (int)((double)HEALTH_BAR_HEIGHT * (1 - ((double)sorted_tanks.at(i)->health / (double)TANK_MAX_HEALTH))), health_bar_end_x, health_bar_end_y, GREENMASK);
+            screen->Bar(health_bar_start_x, health_bar_start_y + (int)((double)HEALTH_BAR_HEIGHT * (1 - ((double)sorted_tanks.at(i + begin)->health / (double)TANK_MAX_HEALTH))), health_bar_end_x, health_bar_end_y, GREENMASK);
         }
     }
 }
@@ -366,6 +367,56 @@ void Tmpl8::Game::quick_sort_tanks_health(int begin, int end)
         // voer de quicksort uit aan de rechter kan van de p_index
         quick_sort_tanks_health(p_index + 1, end);
     }
+}
+
+void Tmpl8::Game::merlijn_sort()
+{
+    if (hitted_tanks.size() == 0)
+        return;
+
+    for (int i = 0; i < hitted_tanks.size(); i++)
+    {
+        int hit_index = hitted_tanks.at(i);
+
+        Tank* tank = sorted_tanks.at(hit_index);
+
+        for (int j = hit_index; j > 0; j--)
+        {
+            cout << j << endl;
+            if (sorted_tanks.at(j)->health < tank->health)
+            {
+                sorted_tanks.erase(sorted_tanks.begin() + hit_index);
+
+                sorted_tanks.insert(sorted_tanks.begin() + j, tank);
+
+                break;
+            }
+        }
+        tank->is_hit = false;
+    }
+
+   // cout << sorted_tanks.size();
+
+    for (int i = 0; i < sorted_tanks.size(); i++)
+    {
+        if (sorted_tanks.at(i)->health != 1000)
+            cout << sorted_tanks.at(i)->health << endl;
+    }
+    cout << endl;
+
+    hitted_tanks.clear();
+}
+
+bool Tmpl8::Game::hit_tank(int tank_index, int dmg)
+{
+    Tank* tank = sorted_tanks.at(tank_index);
+
+    if (tank->is_hit == false)
+    {
+        hitted_tanks.push_back(tank_index);
+    }
+
+    return tank->hit(dmg);
 }
 
 // -----------------------------------------------------------

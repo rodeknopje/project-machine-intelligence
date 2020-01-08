@@ -54,6 +54,7 @@ class Tank
     Sprite* tank_sprite;
     Sprite* smoke_sprite;
 
+    bool is_hit = false;
 };
 
 } // namespace Tmpl8

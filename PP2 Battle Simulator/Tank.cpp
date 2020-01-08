@@ -76,6 +76,8 @@ bool Tank::hit(int hit_value)
         return true;
     }
 
+    is_hit = true;
+
     return false;
 }
 
