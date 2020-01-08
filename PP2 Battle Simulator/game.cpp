@@ -17,7 +17,12 @@
 #define MAX_FRAMES 2000
 
 //Global performance timer
-#define REF_PERFORMANCE 73466 //UPDATE THIS WITH YOUR REFERENCE PERFORMANCE (see console after 2k frames)
+//M-PC     = 44306.7
+//M-Laptop =
+//T-Pc     =
+//T-Laptop =
+
+#define REF_PERFORMANCE 44306.7 //UPDATE THIS WITH YOUR REFERENCE PERFORMANCE (see console after 2k frames)
 static timer perf_timer;
 static float duration;
 
@@ -47,7 +52,8 @@ const static float tank_radius = 12.f;
 const static float rocket_radius = 10.f;
 
 // -----------------------------------------------------------
-// Initialize the ape--------------------------------------------
+// Initialize the application
+// -----------------------------------------------------------
 void Game::Init()
 {
     frame_count_font = new Font("assets/digital_small.png", "ABCDEFGHIJKLMNOPQRSTUVWXYZ:?!=-0123456789.");
@@ -74,11 +80,6 @@ void Game::Init()
     for (int i = 0; i < NUM_TANKS_RED; i++)
     {
         tanks.push_back(Tank(start_red_x + ((i % max_rows) * spacing), start_red_y + ((i / max_rows) * spacing), RED, &tank_red, &smoke, 80, 80, tank_radius, TANK_MAX_HEALTH, TANK_MAX_SPEED));
-    }
-
-    for (int i = 0; i < tanks.size(); i++)
-    {
-        sorted_tanks.push_back(&tanks.at(i));
     }
 
     particle_beams.push_back(Particle_beam(vec2(SCRWIDTH / 2, SCRHEIGHT / 2), vec2(100, 50), &particle_beam_sprite, PARTICLE_BEAM_HIT_VALUE));
@@ -174,21 +175,18 @@ void Game::Update(float deltaTime)
         rocket.Tick();
 
         //Check if rocket collides with enemy tank, spawn explosion and if tank is destroyed spawn a smoke plume
-        for (int i = 0; i < sorted_tanks.size(); i++)
+        for (Tank& tank : tanks)
         {
-            Tank* tank = sorted_tanks.at(i);
-
-            if (tank->active && (tank->allignment != rocket.allignment) && rocket.Intersects(tank->position, tank->collision_radius))
+            if (tank.active && (tank.allignment != rocket.allignment) && rocket.Intersects(tank.position, tank.collision_radius))
             {
-                explosions.push_back(Explosion(&explosion, tank->position));
+                explosions.push_back(Explosion(&explosion, tank.position));
 
-                if (hit_tank(i, ROCKET_HIT_VALUE))
+                if (tank.hit(ROCKET_HIT_VALUE))
                 {
-                    smokes.push_back(Smoke(smoke, tank->position - vec2(0, 48)));
+                    smokes.push_back(Smoke(smoke, tank.position - vec2(0, 48)));
                 }
 
                 rocket.active = false;
-
                 break;
             }
         }
@@ -205,13 +203,13 @@ void Game::Update(float deltaTime)
         //Damage all tanks within the damage window of the beam (the window is an axis-aligned bounding box)
         for (Tank& tank : tanks)
         {
-            //if (tank.active && particle_beam.rectangle.intersectsCircle(tank.Get_Position(), tank.Get_collision_radius()))
-            //{
-            //    if (tank.hit(particle_beam.damage))
-            //    {
-            //        smokes.push_back(Smoke(smoke, tank.position - vec2(0, 48)));
-            //    }
-            //}
+            if (tank.active && particle_beam.rectangle.intersectsCircle(tank.Get_Position(), tank.Get_collision_radius()))
+            {
+                if (tank.hit(particle_beam.damage))
+                {
+                    smokes.push_back(Smoke(smoke, tank.position - vec2(0, 48)));
+                }
+            }
         }
     }
 
@@ -263,25 +261,15 @@ void Game::Draw()
         explosion.Draw(screen);
     }
 
-    //Draw sorted health bars, loop door beide teams heen.
-    // 0 = blauw.
-    // 1 = rood.
-    merlijn_sort();
-
+    //Draw sorted health bars
     for (int t = 0; t < 2; t++)
     {
-        // pak het aantal tanks dat in dat team zit.
         const UINT16 NUM_TANKS = ((t < 1) ? NUM_TANKS_BLUE : NUM_TANKS_RED);
-        // pak de begin index van dat team in de tanks array.
+
         const UINT16 begin = ((t < 1) ? 0 : NUM_TANKS_BLUE);
-        // pak de end index van dat team in de tanks array.
-        const UINT16 end = begin + NUM_TANKS;
-        // maak een array waarin de gesorteerde tanks komen.
-        //std::vector<const Tank*> sorted_tanks;
-        // roep de insertion sort aan met de net gemaakte waarden.
-        //insertion_sort_tanks_health(tanks, sorted_tanks, begin, end);
-        //quick_sort_tanks_health(begin, end - 1);
-        
+        std::vector<const Tank*> sorted_tanks;
+
+        insertion_sort_tanks_health(tanks, sorted_tanks, begin, begin + NUM_TANKS);
 
         for (int i = 0; i < NUM_TANKS; i++)
         {
@@ -291,7 +279,7 @@ void Game::Draw()
             int health_bar_end_y = (t < 1) ? HEALTH_BAR_HEIGHT : SCRHEIGHT - 1;
 
             screen->Bar(health_bar_start_x, health_bar_start_y, health_bar_end_x, health_bar_end_y, REDMASK);
-            screen->Bar(health_bar_start_x, health_bar_start_y + (int)((double)HEALTH_BAR_HEIGHT * (1 - ((double)sorted_tanks.at(i + begin)->health / (double)TANK_MAX_HEALTH))), health_bar_end_x, health_bar_end_y, GREENMASK);
+            screen->Bar(health_bar_start_x, health_bar_start_y + (int)((double)HEALTH_BAR_HEIGHT * (1 - ((double)sorted_tanks.at(i)->health / (double)TANK_MAX_HEALTH))), health_bar_end_x, health_bar_end_y, GREENMASK);
         }
     }
 }
@@ -301,16 +289,12 @@ void Game::Draw()
 // -----------------------------------------------------------
 void Tmpl8::Game::insertion_sort_tanks_health(const std::vector<Tank>& original, std::vector<const Tank*>& sorted_tanks, UINT16 begin, UINT16 end)
 {
-    // kijk door hoeveel tanks je heen moet.
     const UINT16 NUM_TANKS = end - begin;
-    // maak zoveel ruimte vrij in de sorted_tanks array.
     sorted_tanks.reserve(NUM_TANKS);
-    // stop de eerste tank daarin.
     sorted_tanks.emplace_back(&original.at(begin));
-    // loop door de rest van de tanks.
+
     for (int i = begin + 1; i < (begin + NUM_TANKS); i++)
     {
-        // pak de volgende tank uit de orgineele array.
         const Tank& current_tank = original.at(i);
 
         for (int s = (int)sorted_tanks.size() - 1; s >= 0; s--)
@@ -332,93 +316,6 @@ void Tmpl8::Game::insertion_sort_tanks_health(const std::vector<Tank>& original,
     }
 }
 
-int Tmpl8::Game::partition(int begin, int end)
-{
-    // assign de pivot met de waarde aan het einde.
-    int pivot = sorted_tanks[end]->health;
-    // assign de pivot index met de waarde aan het begin.
-    int p_index = begin;
-    // loop door alle waarden behalve de pivot.
-    for (int i = begin; i < end; i++)
-    {
-        // als de waarde lager of gelijk is aan de pivot.
-        if (sorted_tanks[i]->health <= pivot)
-        {
-            // verwissel deze waarden.
-            std::swap(sorted_tanks[i], sorted_tanks[p_index]);
-            // verhoog de p_index met 1
-            p_index++;
-        }
-    }
-    // verwissel het laatste element met de pivot index.
-    std::swap(sorted_tanks[end], sorted_tanks[p_index]);
-    // return de pivot index
-    return p_index;
-}
-
-void Tmpl8::Game::quick_sort_tanks_health(int begin, int end)
-{
-    if (begin < end)
-    {
-        // krijg de correcte index van het laatste element.
-        int p_index = partition(begin, end);
-        // voer de quicksort uit aan de linker kan van de p_index
-        quick_sort_tanks_health(begin, p_index - 1);
-        // voer de quicksort uit aan de rechter kan van de p_index
-        quick_sort_tanks_health(p_index + 1, end);
-    }
-}
-
-void Tmpl8::Game::merlijn_sort()
-{
-    if (hitted_tanks.size() == 0)
-        return;
-
-    for (int i = 0; i < hitted_tanks.size(); i++)
-    {
-        int hit_index = hitted_tanks.at(i);
-
-        Tank* tank = sorted_tanks.at(hit_index);
-
-        for (int j = hit_index; j > 0; j--)
-        {
-            cout << j << endl;
-            if (sorted_tanks.at(j)->health < tank->health)
-            {
-                sorted_tanks.erase(sorted_tanks.begin() + hit_index);
-
-                sorted_tanks.insert(sorted_tanks.begin() + j, tank);
-
-                break;
-            }
-        }
-        tank->is_hit = false;
-    }
-
-   // cout << sorted_tanks.size();
-
-    for (int i = 0; i < sorted_tanks.size(); i++)
-    {
-        if (sorted_tanks.at(i)->health != 1000)
-            cout << sorted_tanks.at(i)->health << endl;
-    }
-    cout << endl;
-
-    hitted_tanks.clear();
-}
-
-bool Tmpl8::Game::hit_tank(int tank_index, int dmg)
-{
-    Tank* tank = sorted_tanks.at(tank_index);
-
-    if (tank->is_hit == false)
-    {
-        hitted_tanks.push_back(tank_index);
-    }
-
-    return tank->hit(dmg);
-}
-
 // -----------------------------------------------------------
 // When we reach MAX_FRAMES print the duration and speedup multiplier
 // Updating REF_PERFORMANCE at the top of this file with the value
@@ -433,6 +330,7 @@ void Tmpl8::Game::MeasurePerformance()
         {
             duration = perf_timer.elapsed();
             cout << "Duration was: " << duration << " (Replace REF_PERFORMANCE with this value)" << endl;
+            cout << "Duration of the tested method was " << total_time << endl;
             lock_update = true;
         }
 
@@ -447,6 +345,8 @@ void Tmpl8::Game::MeasurePerformance()
         frame_count_font->Centre(screen, buffer, 200);
         sprintf(buffer, "SPEEDUP: %4.1f", REF_PERFORMANCE / duration);
         frame_count_font->Centre(screen, buffer, 340);
+
+        
     }
 }
 
@@ -473,4 +373,18 @@ void Game::Tick(float deltaTime)
     frame_count++;
     string frame_count_string = "FRAME: " + std::to_string(frame_count);
     frame_count_font->Print(screen, frame_count_string.c_str(), 350, 580);
+}
+
+void Tmpl8::Game::start_timer()
+{
+    start_time = std::chrono::high_resolution_clock::now();
+}
+
+void Tmpl8::Game::stop_timer()
+{
+    auto stop_time = std::chrono::high_resolution_clock::now();
+
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop_time - start_time);
+
+    total_time += duration.count();
 }

@@ -18,11 +18,13 @@ class Game
     void Draw();
     void Tick(float deltaTime);
     void insertion_sort_tanks_health(const std::vector<Tank>& original, std::vector<const Tank*>& sorted_tanks, UINT16 begin, UINT16 end);
-    int partition(int begin, int end);
-    void quick_sort_tanks_health(int begin, int end);
-    void merlijn_sort();
-    bool hit_tank(int tank_index, int dmg);
     void MeasurePerformance();
+
+    std::chrono::steady_clock::time_point start_time;
+    float total_time;
+
+    void start_timer();
+    void stop_timer();
 
 
     Tank& FindClosestEnemy(Tank& current_tank);
@@ -51,9 +53,6 @@ class Game
     Surface* screen;
 
     vector<Tank> tanks;
-    vector<Tank*> sorted_tanks;
-    vector<int> hitted_tanks;
-
     vector<Rocket> rockets;
     vector<Smoke> smokes;
     vector<Explosion> explosions;
