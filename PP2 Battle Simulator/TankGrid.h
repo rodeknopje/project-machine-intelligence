@@ -3,13 +3,11 @@
 
 namespace Tmpl8
 {
-
 class TankGrid
 {
     static const int size = 10;
 
     private:
-    std::map<int, Tank*> tanks;
+    std::map<int, Tank*> tanks[size][size];
 };
-
-} // namespace Tmpl8
+} 

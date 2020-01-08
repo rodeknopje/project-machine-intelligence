@@ -13,7 +13,8 @@ Tank::Tank(
     float tar_y,
     float collision_radius,
     int health,
-    float max_speed)
+    float max_speed,
+    int id)
     : position(pos_x, pos_y),
       allignment(allignment),
       target(tar_x, tar_y),
@@ -27,7 +28,8 @@ Tank::Tank(
       active(true),
       current_frame(0),
       tank_sprite(tank_sprite),
-      smoke_sprite(smoke_sprite)
+      smoke_sprite(smoke_sprite),
+      ID(id)
 {
 }
 
