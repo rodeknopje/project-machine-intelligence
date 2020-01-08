@@ -74,12 +74,18 @@ void Game::Init()
     //Spawn blue tanks
     for (int i = 0; i < NUM_TANKS_BLUE; i++)
     {
-        tanks.push_back(Tank(start_blue_x + ((i % max_rows) * spacing), start_blue_y + ((i / max_rows) * spacing), BLUE, &tank_blue, &smoke, 1200, 600, tank_radius, TANK_MAX_HEALTH, TANK_MAX_SPEED));
+        // create the tank
+        Tank tank = Tank(start_blue_x + ((i % max_rows) * spacing), start_blue_y + ((i / max_rows) * spacing), BLUE, &tank_blue, &smoke, 1200, 600, tank_radius, TANK_MAX_HEALTH, TANK_MAX_SPEED);
+        // add the tank to the tanks list.
+        tanks.push_back(tank);
     }
+
     //Spawn red tanks
     for (int i = 0; i < NUM_TANKS_RED; i++)
     {
-        tanks.push_back(Tank(start_red_x + ((i % max_rows) * spacing), start_red_y + ((i / max_rows) * spacing), RED, &tank_red, &smoke, 80, 80, tank_radius, TANK_MAX_HEALTH, TANK_MAX_SPEED));
+        Tank tank = Tank(start_red_x + ((i % max_rows) * spacing), start_red_y + ((i / max_rows) * spacing), RED, &tank_red, &smoke, 80, 80, tank_radius, TANK_MAX_HEALTH, TANK_MAX_SPEED);
+        // add the tank to the tanks list.
+        tanks.push_back(tank);
     }
 
     particle_beams.push_back(Particle_beam(vec2(SCRWIDTH / 2, SCRHEIGHT / 2), vec2(100, 50), &particle_beam_sprite, PARTICLE_BEAM_HIT_VALUE));
@@ -174,10 +180,17 @@ void Game::Update(float deltaTime)
     {
         rocket.Tick();
 
+        int x = rocket.allignment;
+
+        int begin = x == 1 ? 0 : NUM_TANKS_BLUE;
+        int end = x == 1 ? NUM_TANKS_BLUE : tanks.size();
+
         //Check if rocket collides with enemy tank, spawn explosion and if tank is destroyed spawn a smoke plume
-        for (Tank& tank : tanks)
+        for (int i = begin; i < end; i++)
+        //for (Tank &tank : tanks)
         {
-            if (tank.active && (tank.allignment != rocket.allignment) && rocket.Intersects(tank.position, tank.collision_radius))
+            Tank& tank = tanks.at(i);
+            if (tank.active && /*(tank.allignment != rocket.allignment) &&*/ rocket.Intersects(tank.position, tank.collision_radius))
             {
                 explosions.push_back(Explosion(&explosion, tank.position));
 
@@ -269,7 +282,9 @@ void Game::Draw()
         const UINT16 begin = ((t < 1) ? 0 : NUM_TANKS_BLUE);
         std::vector<const Tank*> sorted_tanks;
 
+        start_timer();
         insertion_sort_tanks_health(tanks, sorted_tanks, begin, begin + NUM_TANKS);
+        stop_timer();
 
         for (int i = 0; i < NUM_TANKS; i++)
         {
@@ -345,8 +360,6 @@ void Tmpl8::Game::MeasurePerformance()
         frame_count_font->Centre(screen, buffer, 200);
         sprintf(buffer, "SPEEDUP: %4.1f", REF_PERFORMANCE / duration);
         frame_count_font->Centre(screen, buffer, 340);
-
-        
     }
 }
 

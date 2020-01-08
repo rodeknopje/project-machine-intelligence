@@ -20,12 +20,12 @@ class Game
     void insertion_sort_tanks_health(const std::vector<Tank>& original, std::vector<const Tank*>& sorted_tanks, UINT16 begin, UINT16 end);
     void MeasurePerformance();
 
-    std::chrono::steady_clock::time_point start_time;
+    // --------testing variables---------
+    std::chrono::steady_clock::time_point start_time; 
     float total_time;
-
     void start_timer();
     void stop_timer();
-
+    // ----------------------------------
 
     Tank& FindClosestEnemy(Tank& current_tank);
 
@@ -53,6 +53,10 @@ class Game
     Surface* screen;
 
     vector<Tank> tanks;
+
+    vector<Tank*> tanks_red;
+    vector<Tank*> tanks_blue;
+
     vector<Rocket> rockets;
     vector<Smoke> smokes;
     vector<Explosion> explosions;
