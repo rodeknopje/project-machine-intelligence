@@ -33,6 +33,7 @@ Tank::Tank(
 
 Tank::~Tank()
 {
+    
 }
 
 void Tank::Tick()
@@ -42,6 +43,8 @@ void Tank::Tick()
     //Update using accumulated force
     speed = direction + force;
     position += speed * max_speed * 0.5f;
+
+    // cout << "(" << (int)position.x/100 << "," << (int)position.y/100 << ")" << endl;
 
     //Update reload time
     if (--reload_time <= 0.0f)
