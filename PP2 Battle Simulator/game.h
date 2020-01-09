@@ -7,7 +7,7 @@ class Tank;
 class Rocket;
 class Smoke;
 class Particle_beam;
-
+class TankGrid;
 class Game
 {
   public:
@@ -56,6 +56,8 @@ class Game
 
     vector<Tank*> tanks_red;
     vector<Tank*> tanks_blue;
+
+	TankGrid tankgrid;
 
     vector<Rocket> rockets;
     vector<Smoke> smokes;

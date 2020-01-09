@@ -82,11 +82,11 @@ using namespace Tmpl8;
 #include "ThreadPool.h"
 
 #include "tank.h"
+#include "TankGrid.h"
 #include "rocket.h"
 #include "smoke.h"
 #include "explosion.h"
 #include "particle_beam.h"
-
 #include "game.h"
 
 // clang-format on

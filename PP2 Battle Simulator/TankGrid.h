@@ -5,9 +5,14 @@ namespace Tmpl8
 {
 class TankGrid
 {
-    static const int size = 10;
+  public:
+    static const int size = 100;
 
-    private:
-    std::map<int, Tank*> tanks[size][size];
+
+	TankGrid();
+	void add_tank(int _x, int _y, Tank* tank);
+
+  private:
+    std::map<int, Tank*> cells[size][size];
 };
-} 
+} // namespace Tmpl8

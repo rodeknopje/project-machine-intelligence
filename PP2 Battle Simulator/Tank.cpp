@@ -14,7 +14,8 @@ Tank::Tank(
     float collision_radius,
     int health,
     float max_speed,
-    int id)
+    int id,
+    TankGrid* grid)
     : position(pos_x, pos_y),
       allignment(allignment),
       target(tar_x, tar_y),
@@ -29,8 +30,11 @@ Tank::Tank(
       current_frame(0),
       tank_sprite(tank_sprite),
       smoke_sprite(smoke_sprite),
-      ID(id)
+      ID(id),
+      grid(grid)
+
 {
+    grid->add_tank(position.x / grid->size, position.y / grid->size, this);
 }
 
 Tank::~Tank()
