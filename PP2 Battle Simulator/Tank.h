@@ -35,6 +35,8 @@ class Tank
 
     void Push(vec2 direction, float magnitude);
 
+    int prev_x;
+    int prev_y;
     vec2 position;
     vec2 speed;
     vec2 target;

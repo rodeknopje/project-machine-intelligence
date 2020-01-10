@@ -34,12 +34,14 @@ Tank::Tank(
       grid(grid)
 
 {
-    grid->add_tank(position.x / grid->size, position.y / grid->size, this);
+    prev_x = (int)position.x / grid->size;
+    prev_y = (int)position.y / grid->size;
+
+    grid->add_tank(prev_x, prev_y, this);
 }
 
 Tank::~Tank()
 {
-    
 }
 
 void Tank::Tick()
@@ -48,7 +50,13 @@ void Tank::Tick()
 
     //Update using accumulated force
     speed = direction + force;
+
     position += speed * max_speed * 0.5f;
+
+    if ((int)position.x/grid->size != prev_x || (int)position.y/grid->size != prev_y)
+    {
+        grid->move_tank(prev_x, prev_y, ID);
+    }
 
     // cout << "(" << (int)position.x/100 << "," << (int)position.y/100 << ")" << endl;
 
