@@ -1,7 +1,7 @@
 #include "precomp.h" // include (only) this in every .cpp file
 //1279
-#define NUM_TANKS_BLUE 30
-#define NUM_TANKS_RED 30
+#define NUM_TANKS_BLUE 10
+#define NUM_TANKS_RED 10
 
 #define TANK_MAX_HEALTH 1000
 #define ROCKET_HIT_VALUE 60

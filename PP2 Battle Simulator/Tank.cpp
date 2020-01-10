@@ -55,7 +55,7 @@ void Tank::Tick()
 
     if ((int)position.x/grid->size != prev_x || (int)position.y/grid->size != prev_y)
     {
-        cout << ID << " (" << (int)position.x / grid->size <<"," << (int)position.y / grid->size<<")" << " != (" << prev_x << ","<< prev_y<<")" << endl ;
+        //cout << ID << " (" << (int)position.x / grid->size <<"," << (int)position.y / grid->size<<")" << " != (" << prev_x << ","<< prev_y<<")" << endl ;
         grid->move_tank(prev_x, prev_y, ID, this);
     }
 
@@ -91,6 +91,9 @@ bool Tank::hit(int hit_value)
     if (health <= 0)
     {
         this->Deactivate();
+
+        grid->del_tank(prev_x, prev_y, ID);
+
         return true;
     }
 

@@ -12,6 +12,7 @@ class TankGrid
 	TankGrid();
 	void add_tank(int _x, int _y, Tank* tank);
     void move_tank(int _x, int _y, const int ID, Tank* tank);
+    void del_tank(int _x, int _y, const int ID);
     void show_tanks();
 
   private:
