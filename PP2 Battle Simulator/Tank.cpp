@@ -55,7 +55,8 @@ void Tank::Tick()
 
     if ((int)position.x/grid->size != prev_x || (int)position.y/grid->size != prev_y)
     {
-        grid->move_tank(prev_x, prev_y, ID);
+        cout << ID << " (" << (int)position.x / grid->size <<"," << (int)position.y / grid->size<<")" << " != (" << prev_x << ","<< prev_y<<")" << endl ;
+        grid->move_tank(prev_x, prev_y, ID, this);
     }
 
     // cout << "(" << (int)position.x/100 << "," << (int)position.y/100 << ")" << endl;

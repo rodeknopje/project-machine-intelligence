@@ -16,25 +16,23 @@ void TankGrid::add_tank(int _x, int _y, Tank* tank)
     //cout << _x << "," << _y << " - " << cells[_x][_y].size() << endl;
 }
 
-void TankGrid::move_tank(int _x, int _y, const int ID)
+void TankGrid::move_tank(int _x, int _y, const int ID, Tank* tank)
 {
-    Tank tank = *cells[_x][_y].at(ID);
+    cout << cells[_x][_y].erase(ID);
 
-    cells[_x][_y].erase(ID);
+    int x = (int)tank->position.x / size;
+    int y = (int)tank->position.y / size;
 
+    tank->prev_x = x;
+    tank->prev_y = y;
 
-    //int x = (int)tank.position.x / size;
-    //int y = (int)tank.position.y / size;
+    cells[x][y].emplace(tank->ID, tank);
 
-    //tank.prev_x = x;
-    //tank.prev_x = y;
-
-    //cells[x][y].emplace(tank.ID, &tank);
+    show_tanks();
 }
 
 void TankGrid::show_tanks()
 {
-    int b = 0;
     for (int y = 0; y < size; y++)
     {
         for (int x = 0; x < size; x++)
@@ -47,7 +45,7 @@ void TankGrid::show_tanks()
         }
         cout << endl;
     }
-    cout << b;
+    cout << endl;
 }
 
 } // namespace Tmpl8
