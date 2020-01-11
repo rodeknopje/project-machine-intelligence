@@ -138,19 +138,18 @@ void Game::Update(float deltaTime)
 {
     //Update tanks
     for (Tank& tank : tanks)
-    {
-        
+    {   
         if (tank.active)
         {
             //Check tank collision and nudge tanks away from each other
-            for (Tank& oTank : tanks)
+            for (auto oTank : tankgrid.get_cell((int)tank.position.x / tankgrid.size, (int)tank.position.y / tankgrid.size))
             {
-                if (&tank == &oTank) continue;
+                if (tank.ID == oTank.second->ID) continue;
 
-                vec2 dir = tank.Get_Position() - oTank.Get_Position();
+                vec2 dir = tank.Get_Position() - oTank.second->Get_Position();
                 float dirSquaredLen = dir.sqrLength();
 
-                float colSquaredLen = (tank.Get_collision_radius() * tank.Get_collision_radius()) + (oTank.Get_collision_radius() * oTank.Get_collision_radius());
+                float colSquaredLen = (tank.Get_collision_radius() * tank.Get_collision_radius()) + (oTank.second->Get_collision_radius() * oTank.second->Get_collision_radius());
 
                 if (dirSquaredLen < colSquaredLen)
                 {
@@ -179,6 +178,7 @@ void Game::Update(float deltaTime)
         smoke.Tick();
     }
 
+    start_timer();
     //Update rockets
     for (Rocket& rocket : rockets)
     {
@@ -193,7 +193,7 @@ void Game::Update(float deltaTime)
         //for (int i = begin; i < end; i++)
         //for (Tank &tank : tanks)
 
-        start_timer();
+        
         for (Tank* tank : tankgrid.get_enemies_in_cell(rocket.position.x,rocket.position.y,x))
         {
             if (rocket.Intersects(tank->position, tank->collision_radius))
@@ -209,8 +209,8 @@ void Game::Update(float deltaTime)
                 break;
             }
         }
-        stop_timer();
     }
+    stop_timer();
 
     //Remove exploded rockets with remove erase idiom
     rockets.erase(std::remove_if(rockets.begin(), rockets.end(), [](const Rocket& rocket) { return !rocket.active; }), rockets.end());

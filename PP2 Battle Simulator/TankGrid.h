@@ -6,7 +6,7 @@ namespace Tmpl8
 class TankGrid
 {
   public:
-    static const int size = 45;
+    static const int size = 40;
 
 
 	TankGrid();
