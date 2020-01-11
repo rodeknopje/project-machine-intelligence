@@ -7,7 +7,7 @@
 
 // Prevent expansion clashes (when using std::min and std::max):
 #define NOMINMAX
-
+// 16:9
 #define SCRWIDTH 1280
 #define SCRHEIGHT 720
 

@@ -76,7 +76,7 @@ void Game::Init()
     for (int i = 0; i < NUM_TANKS_BLUE; i++)
     {
         // create the tank
-        Tank tank = Tank(start_blue_x + ((i % max_rows) * spacing), start_blue_y + ((i / max_rows) * spacing), BLUE, &tank_blue, &smoke, 1200, 600, tank_radius, TANK_MAX_HEALTH, TANK_MAX_SPEED,id++, &tankgrid);
+        Tank tank = Tank(start_blue_x + ((i % max_rows) * spacing), start_blue_y + ((i / max_rows) * spacing), BLUE, &tank_blue, &smoke, 1200, 600, tank_radius, TANK_MAX_HEALTH, TANK_MAX_SPEED, id++, &tankgrid);
         // add the tank to the tanks list.
         tanks.push_back(tank);
     }
@@ -109,6 +109,7 @@ void Game::Shutdown()
 Tank& Game::FindClosestEnemy(Tank& current_tank)
 {
     float closest_distance = numeric_limits<float>::infinity();
+
     int closest_index = 0;
 
     for (int i = 0; i < tanks.size(); i++)
@@ -138,7 +139,7 @@ void Game::Update(float deltaTime)
 {
     //Update tanks
     for (Tank& tank : tanks)
-    {   
+    {
         if (tank.active)
         {
             //Check tank collision and nudge tanks away from each other
@@ -178,23 +179,24 @@ void Game::Update(float deltaTime)
         smoke.Tick();
     }
 
-    start_timer();
+    
     //Update rockets
     for (Rocket& rocket : rockets)
     {
+        if (rocket.active == false)
+            continue;
+
         rocket.Tick();
 
-        int x = rocket.allignment;
+        int x = rocket.position.x;
+        int y = rocket.position.y;
 
-        int begin = x == 1 ? 0 : NUM_TANKS_BLUE;
-        int end = x == 1 ? NUM_TANKS_BLUE : tanks.size();
+        if ( x < 0 || y < 0 || x > tanks.size() - 1 || y > tanks.size() - 1)
+        {
+            rocket.active = false;
+        }
 
-        //Check if rocket collides with enemy tank, spawn explosion and if tank is destroyed spawn a smoke plume
-        //for (int i = begin; i < end; i++)
-        //for (Tank &tank : tanks)
-
-        
-        for (Tank* tank : tankgrid.get_enemies_in_cell(rocket.position.x,rocket.position.y,x))
+        for (Tank* tank : tankgrid.get_enemies_in_cell(rocket.position.x, rocket.position.y, rocket.allignment))
         {
             if (rocket.Intersects(tank->position, tank->collision_radius))
             {
@@ -210,12 +212,9 @@ void Game::Update(float deltaTime)
             }
         }
     }
-    stop_timer();
-
-    //Remove exploded rockets with remove erase idiom
+    
     rockets.erase(std::remove_if(rockets.begin(), rockets.end(), [](const Rocket& rocket) { return !rocket.active; }), rockets.end());
 
-    //Update particle beams
     for (Particle_beam& particle_beam : particle_beams)
     {
         particle_beam.tick(tanks);
@@ -232,6 +231,7 @@ void Game::Update(float deltaTime)
             }
         }
     }
+
 
     //Update explosion sprites and remove when done with remove erase idiom
     for (Explosion& explosion : explosions)
@@ -289,9 +289,7 @@ void Game::Draw()
         const UINT16 begin = ((t < 1) ? 0 : NUM_TANKS_BLUE);
         std::vector<const Tank*> sorted_tanks;
 
-        //start_timer();
         insertion_sort_tanks_health(tanks, sorted_tanks, begin, begin + NUM_TANKS);
-        //stop_timer();
 
         for (int i = 0; i < NUM_TANKS; i++)
         {

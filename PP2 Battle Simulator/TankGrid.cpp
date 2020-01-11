@@ -11,6 +11,13 @@ TankGrid::TankGrid()
 
 void TankGrid::add_tank(int _x, int _y, Tank* tank)
 {
+    //if (_x < 0 || _y < 0 || _x > size - 1 || _y > size - 1)
+    //{
+    //    tank->hit(10000);
+
+    //    return;
+    //}
+
     cells[_x][_y].emplace(tank->ID, tank);
 
     //show_tanks();
@@ -29,6 +36,7 @@ void TankGrid::move_tank(int _x, int _y, const int ID, Tank* tank)
     if (x < 0 || y < 0 || x > size - 1 || y > size - 1)
     {
         tank->hit(10000);
+
         return;
     }
 
@@ -42,7 +50,7 @@ void TankGrid::move_tank(int _x, int _y, const int ID, Tank* tank)
 
 void TankGrid::del_tank(int _x, int _y, const int ID)
 {
-    cells[_x][_y].erase(ID);
+    //cells[_x][_y].erase(ID);
 
     show_tanks();
 }
@@ -66,7 +74,7 @@ vector<Tank*> TankGrid::get_enemies_in_cell(float _x, float _y, int allignment)
 
     for (auto& cell : cells[x][y])
     {
-        if (cell.second->allignment != allignment)
+        if (cell.second->allignment != allignment && cell.second->active)
         {
             tanks.push_back(cell.second);
         }
