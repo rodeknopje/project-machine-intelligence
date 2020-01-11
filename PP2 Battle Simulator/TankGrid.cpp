@@ -47,56 +47,37 @@ void TankGrid::del_tank(int _x, int _y, const int ID)
     show_tanks();
 }
 
-Tank* TankGrid::find_closest_enemy(float _x, float _y, int allignment)
+Tank* TankGrid::find_closest_enemy(float _x, float _y, int radius, int ID, int allignment)
 {
-    float closest_distance = numeric_limits<float>::infinity();
+    return nullptr;
+}
 
-    int cx = 0;
-    int cy = 0;
-    int cID = 0;
+vector<Tank*> TankGrid::get_enemies_in_cell(float _x, float _y, int allignment)
+{
+    vector<Tank*> tanks;
 
-    int cell_x = (int)_x / size;
-    int cell_y = (int)_x / size;
+    int x=(int)_x/size;
+    int y=(int)_y/size;
 
-    bool found = false;
+    if (x < 0 || y < 0 || x > size - 1 || y > size - 1)
+    {
+        return tanks;
+    }
 
-    for (auto& cell : cells[(int)_x / size][(int)_y / size])
+    for (auto& cell : cells[x][y])
     {
         if (cell.second->allignment != allignment)
         {
-            float sqrDist = fabsf((cell.second->Get_Position() - vec2(_x, _y)).sqrLength());
-
-            if (sqrDist < closest_distance)
-            {
-                found = true;
-
-                closest_distance = sqrDist;
-                cx = _x;
-                cy = _y;
-                cID = cell.second->ID;
-            }
+            tanks.push_back(cell.second);
         }
     }
-    return found ? cells[cx][cy].at(cID) : nullptr;
+
+    //cout << tanks.size() << endl;
+
+    return tanks;
 }
 
-//float closest_distance = numeric_limits<float>::infinity();
-//int closest_index = 0;
-//
-//for (int i = 0; i < tanks.size(); i++)
-//{
-//    if (tanks.at(i).allignment != current_tank.allignment && tanks.at(i).active)
-//    {
-//        float sqrDist = fabsf((tanks.at(i).Get_Position() - current_tank.Get_Position()).sqrLength());
-//        if (sqrDist < closest_distance)
-//        {
-//            closest_distance = sqrDist;
-//            closest_index = i;
-//        }
-//    }
-//}
-//
-//return tanks.at(closest_index);
+
 
 void TankGrid::show_tanks()
 {
@@ -117,6 +98,24 @@ void TankGrid::show_tanks()
         }
         cout << endl;
     }
+}
+
+bool TankGrid::enemy_in_cell(int _x, int _y, int allignment)
+{
+    for (auto& cell : cells[_x][_y])
+    {
+        if (cell.second->allignment != allignment)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+std::map<int, Tank*> TankGrid::get_cell(int _x, int _y)
+{
+    return cells[_x][_y];
 }
 
 } // namespace Tmpl8

@@ -190,23 +190,26 @@ void Game::Update(float deltaTime)
         int end = x == 1 ? NUM_TANKS_BLUE : tanks.size();
 
         //Check if rocket collides with enemy tank, spawn explosion and if tank is destroyed spawn a smoke plume
-        for (int i = begin; i < end; i++)
+        //for (int i = begin; i < end; i++)
         //for (Tank &tank : tanks)
-        {
-            Tank& tank = tanks.at(i);
-            if (tank.active && /*(tank.allignment != rocket.allignment) &&*/ rocket.Intersects(tank.position, tank.collision_radius))
-            {
-                explosions.push_back(Explosion(&explosion, tank.position));
 
-                if (tank.hit(ROCKET_HIT_VALUE))
+        start_timer();
+        for (Tank* tank : tankgrid.get_enemies_in_cell(rocket.position.x,rocket.position.y,x))
+        {
+            if (rocket.Intersects(tank->position, tank->collision_radius))
+            {
+                explosions.push_back(Explosion(&explosion, tank->position));
+
+                if (tank->hit(ROCKET_HIT_VALUE))
                 {
-                    smokes.push_back(Smoke(smoke, tank.position - vec2(0, 48)));
+                    smokes.push_back(Smoke(smoke, tank->position - vec2(0, 48)));
                 }
 
                 rocket.active = false;
                 break;
             }
         }
+        stop_timer();
     }
 
     //Remove exploded rockets with remove erase idiom
@@ -286,9 +289,9 @@ void Game::Draw()
         const UINT16 begin = ((t < 1) ? 0 : NUM_TANKS_BLUE);
         std::vector<const Tank*> sorted_tanks;
 
-        start_timer();
+        //start_timer();
         insertion_sort_tanks_health(tanks, sorted_tanks, begin, begin + NUM_TANKS);
-        stop_timer();
+        //stop_timer();
 
         for (int i = 0; i < NUM_TANKS; i++)
         {
