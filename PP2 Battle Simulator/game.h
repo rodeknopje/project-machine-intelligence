@@ -31,8 +31,9 @@ class Game
 
     int time_between_Frames;
     
-
     Tank& FindClosestEnemy(Tank& current_tank);
+
+    bool hit_tank(Tank& tank,int dmg);
 
     void MouseUp(int button)
     { /* implement if you want to detect mouse button presses */
@@ -59,8 +60,8 @@ class Game
 
     vector<Tank> tanks;
 
-    vector<Tank*> tanks_red;
-    vector<Tank*> tanks_blue;
+    std::vector<int> hitted_ids;
+    std::map<int,int*> sorted_hp;
 
 	TankGrid tankgrid;
 

@@ -59,7 +59,7 @@ void Game::Init()
 {
     frame_count_font = new Font("assets/digital_small.png", "ABCDEFGHIJKLMNOPQRSTUVWXYZ:?!=-0123456789.");
 
-    time_between_Frames = (int)((float)1/FRAME_CAP*1000000);
+    time_between_Frames = (int)((float)1 / FRAME_CAP * 1000000);
 
     tanks.reserve(NUM_TANKS_BLUE + NUM_TANKS_RED);
 
@@ -82,6 +82,8 @@ void Game::Init()
         Tank tank = Tank(start_blue_x + ((i % max_rows) * spacing), start_blue_y + ((i / max_rows) * spacing), BLUE, &tank_blue, &smoke, 1200, 600, tank_radius, TANK_MAX_HEALTH, TANK_MAX_SPEED, id++, &tankgrid);
         // add the tank to the tanks list.
         tanks.push_back(tank);
+
+        sorted_hp.emplace(i, &tank.health);
     }
 
     //Spawn red tanks
@@ -90,6 +92,8 @@ void Game::Init()
         Tank tank = Tank(start_red_x + ((i % max_rows) * spacing), start_red_y + ((i / max_rows) * spacing), RED, &tank_red, &smoke, 80, 80, tank_radius, TANK_MAX_HEALTH, TANK_MAX_SPEED, id++, &tankgrid);
         // add the tank to the tanks list.
         tanks.push_back(tank);
+
+        sorted_hp.emplace(i, &tank.health);
     }
 
     particle_beams.push_back(Particle_beam(vec2(SCRWIDTH / 2, SCRHEIGHT / 2), vec2(100, 50), &particle_beam_sprite, PARTICLE_BEAM_HIT_VALUE));
@@ -129,6 +133,16 @@ Tank& Game::FindClosestEnemy(Tank& current_tank)
     }
 
     return tanks.at(closest_index);
+}
+
+bool Tmpl8::Game::hit_tank(Tank& tank, int dmg)
+{
+    if (std::binary_search(hitted_ids.begin(), hitted_ids.end(), tank.ID) == false)
+    {
+        hitted_ids.push_back(tank.ID);
+    }
+
+    return tank.hit(dmg);
 }
 
 // -----------------------------------------------------------
@@ -331,6 +345,10 @@ void Game::Draw()
         }
     }
 
+    string frame_count_string = "FRAME: " + std::to_string(frame_count);
+    frame_count_font->Print(screen, frame_count_string.c_str(), 350, 580);
+
+
     frame_start_time = std::chrono::high_resolution_clock::now();
 }
 
@@ -340,6 +358,7 @@ void Game::Draw()
 void Tmpl8::Game::insertion_sort_tanks_health(const std::vector<Tank>& original, std::vector<const Tank*>& sorted_tanks, UINT16 begin, UINT16 end)
 {
     const UINT16 NUM_TANKS = end - begin;
+
     sorted_tanks.reserve(NUM_TANKS);
     sorted_tanks.emplace_back(&original.at(begin));
 
@@ -419,8 +438,7 @@ void Game::Tick(float deltaTime)
 
     //Print frame count
     frame_count++;
-    string frame_count_string = "FRAME: " + std::to_string(frame_count);
-    frame_count_font->Print(screen, frame_count_string.c_str(), 350, 580);
+
 }
 
 void Tmpl8::Game::start_timer()
