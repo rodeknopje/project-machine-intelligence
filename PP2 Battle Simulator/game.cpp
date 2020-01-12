@@ -15,6 +15,7 @@
 #define HEALTH_BAR_SPACING 0
 
 #define MAX_FRAMES 2000
+#define FRAME_CAP 60
 
 //Global performance timer
 //M-PC     = 44306.7
@@ -179,7 +180,6 @@ void Game::Update(float deltaTime)
         smoke.Tick();
     }
 
-    
     //Update rockets
     for (Rocket& rocket : rockets)
     {
@@ -191,9 +191,11 @@ void Game::Update(float deltaTime)
         int x = rocket.position.x;
         int y = rocket.position.y;
 
-        if ( x < 0 || y < 0 || x > tanks.size() - 1 || y > tanks.size() - 1)
+        if (x < 0 || y < 0 || x > tanks.size() - 1 || y > tanks.size() - 1)
         {
             rocket.active = false;
+
+            continue;
         }
 
         for (Tank* tank : tankgrid.get_enemies_in_cell(rocket.position.x, rocket.position.y, rocket.allignment))
@@ -212,7 +214,7 @@ void Game::Update(float deltaTime)
             }
         }
     }
-    
+
     rockets.erase(std::remove_if(rockets.begin(), rockets.end(), [](const Rocket& rocket) { return !rocket.active; }), rockets.end());
 
     for (Particle_beam& particle_beam : particle_beams)
@@ -232,7 +234,6 @@ void Game::Update(float deltaTime)
         }
     }
 
-
     //Update explosion sprites and remove when done with remove erase idiom
     for (Explosion& explosion : explosions)
     {
@@ -244,6 +245,13 @@ void Game::Update(float deltaTime)
 
 void Game::Draw()
 {
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - frame_start_time).count();
+
+    if ( duration < (int)((float)1/FRAME_CAP*1000))
+    {
+        return;
+    }
+
     // clear the graphics window
     screen->Clear(0);
 
@@ -287,9 +295,12 @@ void Game::Draw()
         const UINT16 NUM_TANKS = ((t < 1) ? NUM_TANKS_BLUE : NUM_TANKS_RED);
 
         const UINT16 begin = ((t < 1) ? 0 : NUM_TANKS_BLUE);
+
         std::vector<const Tank*> sorted_tanks;
 
-        insertion_sort_tanks_health(tanks, sorted_tanks, begin, begin + NUM_TANKS);
+        std::sort(tanks.begin() + begin, tanks.begin() + begin + NUM_TANKS, [=](Tank a, Tank b) { return a.health < b.health; });
+
+        //insertion_sort_tanks_health(tanks, sorted_tanks, begin, begin + NUM_TANKS);
 
         for (int i = 0; i < NUM_TANKS; i++)
         {
@@ -299,9 +310,11 @@ void Game::Draw()
             int health_bar_end_y = (t < 1) ? HEALTH_BAR_HEIGHT : SCRHEIGHT - 1;
 
             screen->Bar(health_bar_start_x, health_bar_start_y, health_bar_end_x, health_bar_end_y, REDMASK);
-            screen->Bar(health_bar_start_x, health_bar_start_y + (int)((double)HEALTH_BAR_HEIGHT * (1 - ((double)sorted_tanks.at(i)->health / (double)TANK_MAX_HEALTH))), health_bar_end_x, health_bar_end_y, GREENMASK);
+            screen->Bar(health_bar_start_x, health_bar_start_y + (int)((double)HEALTH_BAR_HEIGHT * (1 - ((double)tanks.at(begin + i).health / (double)TANK_MAX_HEALTH))), health_bar_end_x, health_bar_end_y, GREENMASK);
         }
     }
+
+    frame_start_time = std::chrono::high_resolution_clock::now();
 }
 
 // -----------------------------------------------------------

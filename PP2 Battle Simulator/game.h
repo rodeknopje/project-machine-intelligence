@@ -27,6 +27,8 @@ class Game
     void stop_timer();
     // ----------------------------------
 
+    std::chrono::steady_clock::time_point frame_start_time = std::chrono::high_resolution_clock::now();
+
     Tank& FindClosestEnemy(Tank& current_tank);
 
     void MouseUp(int button)
@@ -68,6 +70,8 @@ class Game
     long long frame_count = 0;
 
     bool lock_update = false;
+
+
 };
 
 }; // namespace Tmpl8
