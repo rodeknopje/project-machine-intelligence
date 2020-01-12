@@ -30,10 +30,10 @@ void TankGrid::move_tank(int _x, int _y, const int ID, Tank* tank)
 
     cells[_x][_y].erase(ID);
 
-    int x = (int)tank->position.x / size;
-    int y = (int)tank->position.y / size;
+    int x = (int)tank->position.x / cell_size;
+    int y = (int)tank->position.y / cell_size;
 
-    if (x < 0 || y < 0 || x > size - 1 || y > size - 1)
+    if (x < 0 || y < 0 || x > cell_size - 1 || y > cell_size - 1)
     {
         tank->hit(10000);
 
@@ -64,10 +64,10 @@ vector<Tank*> TankGrid::get_enemies_in_cell(float _x, float _y, int allignment)
 {
     vector<Tank*> tanks;
 
-    int x=(int)_x/size;
-    int y=(int)_y/size;
+    int x=(int)_x/cell_size;
+    int y=(int)_y/cell_size;
 
-    if (x < 0 || y < 0 || x > size - 1 || y > size - 1)
+    if (x < 0 || y < 0 || x > cell_size - 1 || y > cell_size - 1)
     {
         return tanks;
     }
@@ -93,9 +93,9 @@ void TankGrid::show_tanks()
         return;
     system("cls");
 
-    for (int y = 0; y < size; y++)
+    for (int y = 0; y < cell_size; y++)
     {
-        for (int x = 0; x < size; x++)
+        for (int x = 0; x < cell_size; x++)
         {
             int csize = cells[x][y].size();
 

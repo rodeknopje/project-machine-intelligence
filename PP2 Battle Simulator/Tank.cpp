@@ -34,8 +34,8 @@ Tank::Tank(
       grid(grid)
 
 {
-    prev_x = (int)position.x / grid->size;
-    prev_y = (int)position.y / grid->size;
+    prev_x = (int)position.x / grid->cell_size;
+    prev_y = (int)position.y / grid->cell_size;
 
     grid->add_tank(prev_x, prev_y, this);
 }
@@ -53,7 +53,7 @@ void Tank::Tick()
 
     position += speed * max_speed * 0.5f;
 
-    if ((int)position.x/grid->size != prev_x || (int)position.y/grid->size != prev_y)
+    if ((int)position.x/grid->cell_size != prev_x || (int)position.y/grid->cell_size != prev_y)
     {    
         //cout << ID << " (" << (int)position.x / grid->size <<"," << (int)position.y / grid->size<<")" << " != (" << prev_x << ","<< prev_y<<")" << endl ;
         grid->move_tank(prev_x, prev_y, ID, this);

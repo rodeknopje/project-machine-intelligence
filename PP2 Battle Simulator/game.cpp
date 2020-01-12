@@ -59,6 +59,8 @@ void Game::Init()
 {
     frame_count_font = new Font("assets/digital_small.png", "ABCDEFGHIJKLMNOPQRSTUVWXYZ:?!=-0123456789.");
 
+    time_between_Frames = (int)((float)1/FRAME_CAP*1000000);
+
     tanks.reserve(NUM_TANKS_BLUE + NUM_TANKS_RED);
 
     uint rows = (uint)sqrt(NUM_TANKS_BLUE + NUM_TANKS_RED);
@@ -144,7 +146,7 @@ void Game::Update(float deltaTime)
         if (tank.active)
         {
             //Check tank collision and nudge tanks away from each other
-            for (auto oTank : tankgrid.get_cell((int)tank.position.x / tankgrid.size, (int)tank.position.y / tankgrid.size))
+            for (auto oTank : tankgrid.get_cell((int)tank.position.x / tankgrid.cell_size, (int)tank.position.y / tankgrid.cell_size))
             {
                 if (tank.ID == oTank.second->ID) continue;
 
@@ -158,6 +160,21 @@ void Game::Update(float deltaTime)
                     tank.Push(dir.normalized(), 1.f);
                 }
             }
+
+            //for (Tank& oTank : tanks)
+            //{
+            //    if (&tank == &oTank) continue;
+
+            //    vec2 dir = tank.Get_Position() - oTank.Get_Position();
+            //    float dirSquaredLen = dir.sqrLength();
+
+            //    float colSquaredLen = (tank.Get_collision_radius() * tank.Get_collision_radius()) + (oTank.Get_collision_radius() * oTank.Get_collision_radius());
+
+            //    if (dirSquaredLen < colSquaredLen)
+            //    {
+            //        tank.Push(dir.normalized(), 1.f);
+            //    }
+            //}
 
             //Move tanks according to speed and nudges (see above) also reload
             tank.Tick();
@@ -245,9 +262,9 @@ void Game::Update(float deltaTime)
 
 void Game::Draw()
 {
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - frame_start_time).count();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - frame_start_time).count();
 
-    if ( duration < (int)((float)1/FRAME_CAP*1000))
+    if (duration < time_between_Frames)
     {
         return;
     }

@@ -29,6 +29,9 @@ class Game
 
     std::chrono::steady_clock::time_point frame_start_time = std::chrono::high_resolution_clock::now();
 
+    int time_between_Frames;
+    
+
     Tank& FindClosestEnemy(Tank& current_tank);
 
     void MouseUp(int button)
