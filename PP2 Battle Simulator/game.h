@@ -1,5 +1,5 @@
 #pragma once
-
+#include <set>
 namespace Tmpl8
 {
 //forward declarations
@@ -60,7 +60,7 @@ class Game
 
     vector<Tank> tanks;
 
-    std::vector<int> hitted_ids;
+    std::set<int> hitted_ids;
     std::map<int,int*> sorted_hp;
 
 	TankGrid tankgrid;

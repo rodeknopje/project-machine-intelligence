@@ -59,7 +59,7 @@ void Game::Init()
 {
     frame_count_font = new Font("assets/digital_small.png", "ABCDEFGHIJKLMNOPQRSTUVWXYZ:?!=-0123456789.");
 
-    time_between_Frames = (int)((float)1 / FRAME_CAP * 1000000);
+    time_between_Frames = (int)((float)1/FRAME_CAP*1000000);
 
     tanks.reserve(NUM_TANKS_BLUE + NUM_TANKS_RED);
 
@@ -137,10 +137,7 @@ Tank& Game::FindClosestEnemy(Tank& current_tank)
 
 bool Tmpl8::Game::hit_tank(Tank& tank, int dmg)
 {
-    if (std::binary_search(hitted_ids.begin(), hitted_ids.end(), tank.ID) == false)
-    {
-        hitted_ids.push_back(tank.ID);
-    }
+    hitted_ids.emplace(tank.ID);
 
     return tank.hit(dmg);
 }
@@ -235,7 +232,7 @@ void Game::Update(float deltaTime)
             {
                 explosions.push_back(Explosion(&explosion, tank->position));
 
-                if (tank->hit(ROCKET_HIT_VALUE))
+                if (hit_tank(*tank,ROCKET_HIT_VALUE))
                 {
                     smokes.push_back(Smoke(smoke, tank->position - vec2(0, 48)));
                 }
@@ -257,7 +254,7 @@ void Game::Update(float deltaTime)
         {
             if (tank.active && particle_beam.rectangle.intersectsCircle(tank.Get_Position(), tank.Get_collision_radius()))
             {
-                if (tank.hit(particle_beam.damage))
+                if (hit_tank(tank, particle_beam.damage))
                 {
                     smokes.push_back(Smoke(smoke, tank.position - vec2(0, 48)));
                 }
@@ -333,7 +330,7 @@ void Game::Draw()
 
         //insertion_sort_tanks_health(tanks, sorted_tanks, begin, begin + NUM_TANKS);
 
-        for (int i = 0; i < NUM_TANKS; i++)
+        for (int i = 0; i < NUM_TANKS; i++) 
         {
             int health_bar_start_x = i * (HEALTH_BAR_WIDTH + HEALTH_BAR_SPACING) + HEALTH_BARS_OFFSET_X;
             int health_bar_start_y = (t < 1) ? 0 : (SCRHEIGHT - HEALTH_BAR_HEIGHT) - 1;
@@ -454,3 +451,4 @@ void Tmpl8::Game::stop_timer()
 
     total_time += duration.count();
 }
+\
