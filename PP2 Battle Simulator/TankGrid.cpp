@@ -5,31 +5,22 @@
 namespace Tmpl8
 {
 
-TankGrid::TankGrid()
+TankGrid::TankGrid(Game& _game) : game(_game)
 {
-
 
 }
 
 void TankGrid::add_tank(int _x, int _y, Tank* tank)
 {
-    //if (_x < 0 || _y < 0 || _x > size - 1 || _y > size - 1)
-    //{
-    //    tank->hit(10000);
-
-    //    return;
-    //}
 
     cells[_x][_y].emplace(tank->ID, tank);
 
     //show_tanks();
-    //cout << _x << "," << _y << " - " << cells[_x][_y].size() << endl;
 }
 
 void TankGrid::move_tank(int _x, int _y, const int ID, Tank* tank)
 {
     //system("cls");
-
     cells[_x][_y].erase(ID);
 
     int x = (int)tank->position.x / cell_size;
@@ -37,7 +28,7 @@ void TankGrid::move_tank(int _x, int _y, const int ID, Tank* tank)
 
     if (x < 0 || y < 0 || x > cell_size - 1 || y > cell_size - 1)
     {
-        tank->hit(1000);
+        tank->active = false;
 
         return;
     }

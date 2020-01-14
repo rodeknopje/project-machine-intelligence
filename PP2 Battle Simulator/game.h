@@ -11,6 +11,7 @@ class TankGrid;
 class Game
 {
   public:
+
     void SetTarget(Surface* surface) { screen = surface; }
     void Init();
     void Shutdown();
@@ -65,7 +66,7 @@ class Game
 
 	void sort_tanks();
 
-	TankGrid tankgrid;
+	TankGrid tankgrid = TankGrid(*this);
 
     vector<Rocket> rockets;
     vector<Smoke> smokes;

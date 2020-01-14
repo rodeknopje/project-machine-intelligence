@@ -52,12 +52,14 @@ const static vec2 rocket_size(25, 24);
 const static float tank_radius = 12.f;
 const static float rocket_radius = 10.f;
 
+
 // -----------------------------------------------------------
 // Initialize the application
 // -----------------------------------------------------------
 void Game::Init()
 {
     frame_count_font = new Font("assets/digital_small.png", "ABCDEFGHIJKLMNOPQRSTUVWXYZ:?!=-0123456789.");
+
 
     time_between_Frames = (int)((float)1 / FRAME_CAP * 1000000);
 
@@ -156,22 +158,8 @@ void Tmpl8::Game::sort_tanks()
 
                 break;
             }
-            if (i == sorted_tanks.size())
-            {
-                sorted_tanks.insert(sorted_tanks.begin() + i+1, tank);
-            }
         }
     }
-
-    sorted_tanks.size();
-
-    //for (auto& f : sorted_tanks)
-    //{
-    //    if (f->health > -1 && f->health < 1000)
-    //
-    //    cout << f->health << endl;
-    //}
-    //cout << "ffffffffffffffffffffffff" << endl;
 
     hitted_tanks.clear();
 }
