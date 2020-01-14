@@ -63,6 +63,8 @@ class Game
     std::set<int> hitted_ids;
     std::map<int,int*> sorted_hp;
 
+	void sort_tanks();
+
 	TankGrid tankgrid;
 
     vector<Rocket> rockets;

@@ -4,7 +4,7 @@
 #define NUM_TANKS_RED 1279
 
 #define TANK_MAX_HEALTH 1000
-#define ROCKET_HIT_VALUE 60
+#define ROCKET_HIT_VALUE 30
 #define PARTICLE_BEAM_HIT_VALUE 50
 
 #define TANK_MAX_SPEED 1.5
@@ -19,11 +19,11 @@
 
 //Global performance timer
 //M-PC     = 44306.7
-//M-Laptop =
+//M-Laptop = 44301.9
 //T-Pc     =
 //T-Laptop =
 
-#define REF_PERFORMANCE 44306.7 //UPDATE THIS WITH YOUR REFERENCE PERFORMANCE (see console after 2k frames)
+#define REF_PERFORMANCE 44301.9 //UPDATE THIS WITH YOUR REFERENCE PERFORMANCE (see console after 2k frames)
 static timer perf_timer;
 static float duration;
 
@@ -59,7 +59,7 @@ void Game::Init()
 {
     frame_count_font = new Font("assets/digital_small.png", "ABCDEFGHIJKLMNOPQRSTUVWXYZ:?!=-0123456789.");
 
-    time_between_Frames = (int)((float)1/FRAME_CAP*1000000);
+    time_between_Frames = (int)((float)1 / FRAME_CAP * 1000000);
 
     tanks.reserve(NUM_TANKS_BLUE + NUM_TANKS_RED);
 
@@ -81,9 +81,10 @@ void Game::Init()
         // create the tank
         Tank tank = Tank(start_blue_x + ((i % max_rows) * spacing), start_blue_y + ((i / max_rows) * spacing), BLUE, &tank_blue, &smoke, 1200, 600, tank_radius, TANK_MAX_HEALTH, TANK_MAX_SPEED, id++, &tankgrid);
         // add the tank to the tanks list.
-        tanks.push_back(tank);
+        tanks.push_back(tank); 
 
-        sorted_hp.emplace(i, &tank.health);
+        sorted_hp.emplace(tank.ID, &(tanks[tanks.size()-1].health));
+
     }
 
     //Spawn red tanks
@@ -93,7 +94,7 @@ void Game::Init()
         // add the tank to the tanks list.
         tanks.push_back(tank);
 
-        sorted_hp.emplace(i, &tank.health);
+        sorted_hp.emplace(tank.ID, &(tanks[tanks.size()-1].health));
     }
 
     particle_beams.push_back(Particle_beam(vec2(SCRWIDTH / 2, SCRHEIGHT / 2), vec2(100, 50), &particle_beam_sprite, PARTICLE_BEAM_HIT_VALUE));
@@ -142,8 +143,45 @@ bool Tmpl8::Game::hit_tank(Tank& tank, int dmg)
     return tank.hit(dmg);
 }
 
+void Tmpl8::Game::sort_tanks()
+{
+    
+    //for (int tank_id : hitted_ids)
+    //{
+    //    int* curr_hp = sorted_hp.at(tank_id);
+
+    //    sorted_hp.erase(tank_id);
+
+    //    // insert in the vector
+    //    {
+    //        int i = 0;
+
+    //        for (auto& valuepair : sorted_hp)
+    //        {
+    //            if (*curr_hp <= *valuepair.second)
+    //            {
+    //                sorted_hp.insert(sorted_hp.begin(), std::pair<int, int*>(tank_id, curr_hp));
+
+    //                break;
+    //            }
+
+    //            i++;
+    //        }
+    //    }
+    //}
+
+    //for (auto& valuepair : sorted_hp)
+    //{
+    //    if (*valuepair.second != 0)
+    //        cout << *valuepair.second << ", ";
+    //}
+    //cout << endl;
+
+    hitted_ids.clear();
+}
+
 // -----------------------------------------------------------
-// Update the game state:
+// Update the game state:s
 // Move all objects
 // Update sprite frames
 // Collision detection
@@ -162,6 +200,7 @@ void Game::Update(float deltaTime)
                 if (tank.ID == oTank.second->ID) continue;
 
                 vec2 dir = tank.Get_Position() - oTank.second->Get_Position();
+
                 float dirSquaredLen = dir.sqrLength();
 
                 float colSquaredLen = (tank.Get_collision_radius() * tank.Get_collision_radius()) + (oTank.second->Get_collision_radius() * oTank.second->Get_collision_radius());
@@ -232,7 +271,7 @@ void Game::Update(float deltaTime)
             {
                 explosions.push_back(Explosion(&explosion, tank->position));
 
-                if (hit_tank(*tank,ROCKET_HIT_VALUE))
+                if (hit_tank(*tank, ROCKET_HIT_VALUE))
                 {
                     smokes.push_back(Smoke(smoke, tank->position - vec2(0, 48)));
                 }
@@ -317,6 +356,8 @@ void Game::Draw()
         explosion.Draw(screen);
     }
 
+    sort_tanks();
+
     //Draw sorted health bars
     for (int t = 0; t < 2; t++)
     {
@@ -330,7 +371,7 @@ void Game::Draw()
 
         //insertion_sort_tanks_health(tanks, sorted_tanks, begin, begin + NUM_TANKS);
 
-        for (int i = 0; i < NUM_TANKS; i++) 
+        for (int i = 0; i < NUM_TANKS; i++)
         {
             int health_bar_start_x = i * (HEALTH_BAR_WIDTH + HEALTH_BAR_SPACING) + HEALTH_BARS_OFFSET_X;
             int health_bar_start_y = (t < 1) ? 0 : (SCRHEIGHT - HEALTH_BAR_HEIGHT) - 1;
@@ -344,7 +385,6 @@ void Game::Draw()
 
     string frame_count_string = "FRAME: " + std::to_string(frame_count);
     frame_count_font->Print(screen, frame_count_string.c_str(), 350, 580);
-
 
     frame_start_time = std::chrono::high_resolution_clock::now();
 }
@@ -435,7 +475,6 @@ void Game::Tick(float deltaTime)
 
     //Print frame count
     frame_count++;
-
 }
 
 void Tmpl8::Game::start_timer()
@@ -451,4 +490,3 @@ void Tmpl8::Game::stop_timer()
 
     total_time += duration.count();
 }
-\
