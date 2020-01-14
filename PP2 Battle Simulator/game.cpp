@@ -52,14 +52,12 @@ const static vec2 rocket_size(25, 24);
 const static float tank_radius = 12.f;
 const static float rocket_radius = 10.f;
 
-
 // -----------------------------------------------------------
 // Initialize the application
 // -----------------------------------------------------------
 void Game::Init()
 {
     frame_count_font = new Font("assets/digital_small.png", "ABCDEFGHIJKLMNOPQRSTUVWXYZ:?!=-0123456789.");
-
 
     time_between_Frames = (int)((float)1 / FRAME_CAP * 1000000);
 
@@ -75,6 +73,8 @@ void Game::Init()
     float start_red_y = 100.0f;
 
     float spacing = 15.0f;
+
+    maxheight = SCRHEIGHT - HEALTH_BAR_HEIGHT;
 
     int id = 0;
     //Spawn blue tanks
@@ -150,7 +150,9 @@ void Tmpl8::Game::sort_tanks()
 
     for (Tank* tank : hitted_tanks)
     {
-        for (int i = 0; i < sorted_tanks.size(); i++)
+        int begin = (int)tank->allignment == 0 ? 0 : NUM_TANKS_BLUE;
+
+        for (int i = begin; i < begin + NUM_TANKS_BLUE; i++)
         {
             if (tank->health <= sorted_tanks.at(i)->health)
             {
@@ -181,6 +183,7 @@ void Game::Update(float deltaTime)
             //Check tank collision and nudge tanks away from each other
             for (auto oTank : tankgrid.get_cell((int)tank.position.x / tankgrid.cell_size, (int)tank.position.y / tankgrid.cell_size))
             {
+                //continue;
                 if (tank.ID == oTank.second->ID) continue;
 
                 vec2 dir = tank.Get_Position() - oTank.second->Get_Position();
@@ -194,21 +197,6 @@ void Game::Update(float deltaTime)
                     tank.Push(dir.normalized(), 1.f);
                 }
             }
-
-            //for (Tank& oTank : tanks)
-            //{
-            //    if (&tank == &oTank) continue;
-
-            //    vec2 dir = tank.Get_Position() - oTank.Get_Position();
-            //    float dirSquaredLen = dir.sqrLength();
-
-            //    float colSquaredLen = (tank.Get_collision_radius() * tank.Get_collision_radius()) + (oTank.Get_collision_radius() * oTank.Get_collision_radius());
-
-            //    if (dirSquaredLen < colSquaredLen)
-            //    {
-            //        tank.Push(dir.normalized(), 1.f);
-            //    }
-            //}
 
             //Move tanks according to speed and nudges (see above) also reload
             tank.Tick();
@@ -312,32 +300,47 @@ void Game::Draw()
     //Draw sprites
     for (int i = 0; i < NUM_TANKS_BLUE + NUM_TANKS_RED; i++)
     {
-        tanks.at(i).Draw(screen);
 
         vec2 tPos = tanks.at(i).Get_Position();
         // tread marks
-        if ((tPos.x >= 0) && (tPos.x < SCRWIDTH) && (tPos.y >= 0) && (tPos.y < SCRHEIGHT))
+        if ((tPos.x >= 0) && (tPos.x < SCRWIDTH) && (tPos.y >= HEALTH_BAR_HEIGHT) && (tPos.y < maxheight))
+        {
+            tanks.at(i).Draw(screen);
             background.GetBuffer()[(int)tPos.x + (int)tPos.y * SCRWIDTH] = SubBlend(background.GetBuffer()[(int)tPos.x + (int)tPos.y * SCRWIDTH], 0x808080);
+        }
     }
 
     for (Rocket& rocket : rockets)
     {
-        rocket.Draw(screen);
+        vec2 tPos = rocket.position;
+        // tread marks
+        if ((tPos.x >= 0) && (tPos.x < SCRWIDTH) && (tPos.y >= HEALTH_BAR_HEIGHT) && (tPos.y < maxheight))
+        {
+            rocket.Draw(screen);
+        }
     }
 
     for (Smoke& smoke : smokes)
     {
-        smoke.Draw(screen);
+        vec2 tPos = smoke.position;
+        // tread marks
+        if ((tPos.x >= 0) && (tPos.x < SCRWIDTH) && (tPos.y >= HEALTH_BAR_HEIGHT) && (tPos.y < maxheight))
+        {
+            smoke.Draw(screen);
+        }
     }
 
     for (Particle_beam& particle_beam : particle_beams)
-    {
         particle_beam.Draw(screen);
-    }
 
     for (Explosion& explosion : explosions)
     {
-        explosion.Draw(screen);
+        vec2 tPos = explosion.position;
+        // tread marks
+        if ((tPos.x >= 0) && (tPos.x < SCRWIDTH) && (tPos.y >= HEALTH_BAR_HEIGHT) && (tPos.y < maxheight))
+        {
+            explosion.Draw(screen);
+        }
     }
 
     sort_tanks();
@@ -345,25 +348,18 @@ void Game::Draw()
     //Draw sorted health bars
     for (int t = 0; t < 2; t++)
     {
-        const UINT16 NUM_TANKS = ((t < 1) ? NUM_TANKS_BLUE : NUM_TANKS_RED);
+        int begin = t == 0 ? 0 : NUM_TANKS_BLUE;
 
-        const UINT16 begin = ((t < 1) ? 0 : NUM_TANKS_BLUE);
+        int health_bar_start_y = (t < 1) ? 0 : (SCRHEIGHT - HEALTH_BAR_HEIGHT) - 1;
+        int health_bar_end_y = (t < 1) ? HEALTH_BAR_HEIGHT : SCRHEIGHT - 1;
 
-        //std::vector<const Tank*> sorted_tanks;
-
-        //std::sort(tanks.begin() + begin, tanks.begin() + begin + NUM_TANKS, [=](Tank a, Tank b) { return a.health < b.health; });
-
-        //insertion_sort_tanks_health(tanks, sorted_tanks, begin, begin + NUM_TANKS);
-
-        for (int i = 0; i < NUM_TANKS; i++)
+        for (int i = 0; i < (NUM_TANKS_BLUE); i++)
         {
             int health_bar_start_x = i * (HEALTH_BAR_WIDTH + HEALTH_BAR_SPACING) + HEALTH_BARS_OFFSET_X;
-            int health_bar_start_y = (t < 1) ? 0 : (SCRHEIGHT - HEALTH_BAR_HEIGHT) - 1;
             int health_bar_end_x = health_bar_start_x + HEALTH_BAR_WIDTH;
-            int health_bar_end_y = (t < 1) ? HEALTH_BAR_HEIGHT : SCRHEIGHT - 1;
 
             screen->Bar(health_bar_start_x, health_bar_start_y, health_bar_end_x, health_bar_end_y, REDMASK);
-            screen->Bar(health_bar_start_x, health_bar_start_y + (int)((double)HEALTH_BAR_HEIGHT * (1 - ((double)sorted_tanks.at(i)->health / (double)TANK_MAX_HEALTH))), health_bar_end_x, health_bar_end_y, GREENMASK);
+            screen->Bar(health_bar_start_x, health_bar_start_y + (int)((double)HEALTH_BAR_HEIGHT * (1 - ((double)sorted_tanks.at(i + begin)->health / (double)TANK_MAX_HEALTH))), health_bar_end_x, health_bar_end_y, GREENMASK);
         }
     }
 
@@ -371,39 +367,6 @@ void Game::Draw()
     frame_count_font->Print(screen, frame_count_string.c_str(), 350, 580);
 
     frame_start_time = std::chrono::high_resolution_clock::now();
-}
-
-// -----------------------------------------------------------
-// Sort tanks by health value using insertion sort
-// -----------------------------------------------------------
-void Tmpl8::Game::insertion_sort_tanks_health(const std::vector<Tank>& original, std::vector<const Tank*>& sorted_tanks, UINT16 begin, UINT16 end)
-{
-    const UINT16 NUM_TANKS = end - begin;
-
-    sorted_tanks.reserve(NUM_TANKS);
-    sorted_tanks.emplace_back(&original.at(begin));
-
-    for (int i = begin + 1; i < (begin + NUM_TANKS); i++)
-    {
-        const Tank& current_tank = original.at(i);
-
-        for (int s = (int)sorted_tanks.size() - 1; s >= 0; s--)
-        {
-            const Tank* current_checking_tank = sorted_tanks.at(s);
-
-            if ((current_checking_tank->CompareHealth(current_tank) <= 0))
-            {
-                sorted_tanks.insert(1 + sorted_tanks.begin() + s, &current_tank);
-                break;
-            }
-
-            if (s == 0)
-            {
-                sorted_tanks.insert(sorted_tanks.begin(), &current_tank);
-                break;
-            }
-        }
-    }
 }
 
 // -----------------------------------------------------------

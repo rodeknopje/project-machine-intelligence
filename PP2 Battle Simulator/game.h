@@ -78,6 +78,8 @@ class Game
 
     bool lock_update = false;
 
+    int maxheight;
+
 
 };
 
