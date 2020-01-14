@@ -7,6 +7,8 @@ namespace Tmpl8
 
 TankGrid::TankGrid()
 {
+
+
 }
 
 void TankGrid::add_tank(int _x, int _y, Tank* tank)
@@ -35,7 +37,7 @@ void TankGrid::move_tank(int _x, int _y, const int ID, Tank* tank)
 
     if (x < 0 || y < 0 || x > cell_size - 1 || y > cell_size - 1)
     {
-        tank->hit(10000);
+        tank->hit(1000);
 
         return;
     }

@@ -60,8 +60,8 @@ class Game
 
     vector<Tank> tanks;
 
-    std::set<int> hitted_ids;
-    std::map<int,int*> sorted_hp;
+    std::set<Tank*> hitted_tanks;
+    std::vector<Tank*> sorted_tanks;
 
 	void sort_tanks();
 

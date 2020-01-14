@@ -62,7 +62,7 @@ void Game::Init()
     time_between_Frames = (int)((float)1 / FRAME_CAP * 1000000);
 
     tanks.reserve(NUM_TANKS_BLUE + NUM_TANKS_RED);
-
+    sorted_tanks.reserve(NUM_TANKS_BLUE + NUM_TANKS_RED);
     uint rows = (uint)sqrt(NUM_TANKS_BLUE + NUM_TANKS_RED);
     uint max_rows = 12;
 
@@ -81,10 +81,9 @@ void Game::Init()
         // create the tank
         Tank tank = Tank(start_blue_x + ((i % max_rows) * spacing), start_blue_y + ((i / max_rows) * spacing), BLUE, &tank_blue, &smoke, 1200, 600, tank_radius, TANK_MAX_HEALTH, TANK_MAX_SPEED, id++, &tankgrid);
         // add the tank to the tanks list.
-        tanks.push_back(tank); 
+        tanks.push_back(tank);
 
-        sorted_hp.emplace(tank.ID, &(tanks[tanks.size()-1].health));
-
+        sorted_tanks.push_back(&(tanks[tanks.size() - 1]));
     }
 
     //Spawn red tanks
@@ -94,7 +93,7 @@ void Game::Init()
         // add the tank to the tanks list.
         tanks.push_back(tank);
 
-        sorted_hp.emplace(tank.ID, &(tanks[tanks.size()-1].health));
+        sorted_tanks.push_back(&(tanks[tanks.size() - 1]));
     }
 
     particle_beams.push_back(Particle_beam(vec2(SCRWIDTH / 2, SCRHEIGHT / 2), vec2(100, 50), &particle_beam_sprite, PARTICLE_BEAM_HIT_VALUE));
@@ -138,46 +137,43 @@ Tank& Game::FindClosestEnemy(Tank& current_tank)
 
 bool Tmpl8::Game::hit_tank(Tank& tank, int dmg)
 {
-    hitted_ids.emplace(tank.ID);
+    hitted_tanks.emplace(&tank);
 
     return tank.hit(dmg);
 }
 
 void Tmpl8::Game::sort_tanks()
 {
-    
-    //for (int tank_id : hitted_ids)
+    sorted_tanks.erase(std::remove_if(sorted_tanks.begin(), sorted_tanks.end(), [=](Tank* x) { return hitted_tanks.count(x) == 1; }), sorted_tanks.end());
+
+    for (Tank* tank : hitted_tanks)
+    {
+        for (int i = 0; i < sorted_tanks.size(); i++)
+        {
+            if (tank->health <= sorted_tanks.at(i)->health)
+            {
+                sorted_tanks.insert(sorted_tanks.begin() + i, tank);
+
+                break;
+            }
+            if (i == sorted_tanks.size())
+            {
+                sorted_tanks.insert(sorted_tanks.begin() + i+1, tank);
+            }
+        }
+    }
+
+    sorted_tanks.size();
+
+    //for (auto& f : sorted_tanks)
     //{
-    //    int* curr_hp = sorted_hp.at(tank_id);
-
-    //    sorted_hp.erase(tank_id);
-
-    //    // insert in the vector
-    //    {
-    //        int i = 0;
-
-    //        for (auto& valuepair : sorted_hp)
-    //        {
-    //            if (*curr_hp <= *valuepair.second)
-    //            {
-    //                sorted_hp.insert(sorted_hp.begin(), std::pair<int, int*>(tank_id, curr_hp));
-
-    //                break;
-    //            }
-
-    //            i++;
-    //        }
-    //    }
+    //    if (f->health > -1 && f->health < 1000)
+    //
+    //    cout << f->health << endl;
     //}
+    //cout << "ffffffffffffffffffffffff" << endl;
 
-    //for (auto& valuepair : sorted_hp)
-    //{
-    //    if (*valuepair.second != 0)
-    //        cout << *valuepair.second << ", ";
-    //}
-    //cout << endl;
-
-    hitted_ids.clear();
+    hitted_tanks.clear();
 }
 
 // -----------------------------------------------------------
@@ -365,9 +361,9 @@ void Game::Draw()
 
         const UINT16 begin = ((t < 1) ? 0 : NUM_TANKS_BLUE);
 
-        std::vector<const Tank*> sorted_tanks;
+        //std::vector<const Tank*> sorted_tanks;
 
-        std::sort(tanks.begin() + begin, tanks.begin() + begin + NUM_TANKS, [=](Tank a, Tank b) { return a.health < b.health; });
+        //std::sort(tanks.begin() + begin, tanks.begin() + begin + NUM_TANKS, [=](Tank a, Tank b) { return a.health < b.health; });
 
         //insertion_sort_tanks_health(tanks, sorted_tanks, begin, begin + NUM_TANKS);
 
@@ -379,7 +375,7 @@ void Game::Draw()
             int health_bar_end_y = (t < 1) ? HEALTH_BAR_HEIGHT : SCRHEIGHT - 1;
 
             screen->Bar(health_bar_start_x, health_bar_start_y, health_bar_end_x, health_bar_end_y, REDMASK);
-            screen->Bar(health_bar_start_x, health_bar_start_y + (int)((double)HEALTH_BAR_HEIGHT * (1 - ((double)tanks.at(begin + i).health / (double)TANK_MAX_HEALTH))), health_bar_end_x, health_bar_end_y, GREENMASK);
+            screen->Bar(health_bar_start_x, health_bar_start_y + (int)((double)HEALTH_BAR_HEIGHT * (1 - ((double)sorted_tanks.at(i)->health / (double)TANK_MAX_HEALTH))), health_bar_end_x, health_bar_end_y, GREENMASK);
         }
     }
 
