@@ -20,6 +20,9 @@ class Game
     void Tick(float deltaTime);
     void insertion_sort_tanks_health(const std::vector<Tank>& original, std::vector<const Tank*>& sorted_tanks, UINT16 begin, UINT16 end);
     void MeasurePerformance();
+    void initialize_particle_beams(Particle_beam& beam);
+
+    void selectcell(int _x, int _y);
 
     // --------testing variables---------
     std::chrono::steady_clock::time_point start_time; 

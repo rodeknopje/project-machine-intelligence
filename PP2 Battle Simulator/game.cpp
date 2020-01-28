@@ -100,14 +100,15 @@ void Game::Init()
 
     cout << tanks.at(tanks.size() - 1).position.x << "-" << tanks.at(tanks.size() - 1).position.y << endl;
 
-    particle_beams.push_back(Particle_beam(vec2(SCRWIDTH / 2, SCRHEIGHT / 2), vec2(100, 50), &particle_beam_sprite, PARTICLE_BEAM_HIT_VALUE));
     particle_beams.push_back(Particle_beam(vec2(80, 80), vec2(100, 50), &particle_beam_sprite, PARTICLE_BEAM_HIT_VALUE));
+    particle_beams.push_back(Particle_beam(vec2(SCRWIDTH / 2, SCRHEIGHT / 2), vec2(100, 50), &particle_beam_sprite, PARTICLE_BEAM_HIT_VALUE));
     particle_beams.push_back(Particle_beam(vec2(1200, 600), vec2(100, 50), &particle_beam_sprite, PARTICLE_BEAM_HIT_VALUE));
 
+    initialize_particle_beams(particle_beams.at(0));
+    initialize_particle_beams(particle_beams.at(1));
+    initialize_particle_beams(particle_beams.at(2));
+
     tankgrid.show_tanks();
-
-
-
 
     for (int x = 0; x < SCRWIDTH; x += tankgrid.cell_size)
     {
@@ -123,6 +124,24 @@ void Game::Init()
             background.GetBuffer()[y + x * SCRWIDTH] = (0xE61F1C);
         }
     }
+
+    selectcell(15, 15);
+}
+
+void Tmpl8::Game::selectcell(int _x, int _y)
+{
+    int sx = _x * tankgrid.cell_size;
+    int sy = _y * tankgrid.cell_size;
+
+    for (int x = sx; x < sx + tankgrid.cell_size; x++)
+    {
+        for (int y = sy; y < sy + tankgrid.cell_size; y++)
+        {
+            if (x > 0 && y > 0 && x < SCRWIDTH && y < SCRHEIGHT)
+
+                background.GetBuffer()[x + y * SCRWIDTH] = (0xFF5A00);
+        }
+    }
 }
 
 // -----------------------------------------------------------
@@ -130,6 +149,23 @@ void Game::Init()
 // -----------------------------------------------------------
 void Game::Shutdown()
 {
+}
+
+void Tmpl8::Game::initialize_particle_beams(Particle_beam& beam)
+{
+    for (int y = beam.min_position.y; y < beam.max_position.y; y += tankgrid.cell_size)
+    {
+        for (int x = beam.min_position.x; x < beam.max_position.x; x += tankgrid.cell_size)
+        {
+            beam.cells_in_sight.push_back(vec2(x / tankgrid.cell_size, y / tankgrid.cell_size));
+
+            selectcell(x / tankgrid.cell_size, y / tankgrid.cell_size);
+
+            cout << "[" << x / tankgrid.cell_size << ", " << y / tankgrid.cell_size << "]";    
+        }
+        cout << endl;
+    }
+    cout << endl;
 }
 
 // -----------------------------------------------------------
@@ -283,16 +319,30 @@ void Game::Update(float deltaTime)
         particle_beam.tick(tanks);
 
         //Damage all tanks within the damage window of the beam (the window is an axis-aligned bounding box)
-        for (Tank& tank : tanks)
-        {
-            if (tank.active && particle_beam.rectangle.intersectsCircle(tank.Get_Position(), tank.Get_collision_radius()))
-            {
-                if (hit_tank(tank, particle_beam.damage))
-                {
-                    smokes.push_back(Smoke(smoke, tank.position - vec2(0, 48)));
-                }
-            }
-        }
+        //for (Tank& tank : tanks)
+        //{
+
+        //if (tank.active && particle_beam.rectangle.intersectsCircle(tank.Get_Position(), tank.Get_collision_radius()))
+        //{
+        //    if (hit_tank(tank, particle_beam.damage))
+        //    {
+        //        smokes.push_back(Smoke(smoke, tank.position - vec2(0, 48)));
+        //    }
+        //}
+        //}
+
+        //for (auto& pos : particle_beam.cells_in_sight)
+        //{
+        //    for (auto& tank : tankgrid.get_cell(pos.x, pos.y))
+        //    {
+        //        if (hit_tank(*tank.second, particle_beam.damage))
+        //        {
+        //            smokes.push_back(Smoke(smoke, tank.second->position - vec2(0, 48)));
+        //        }
+        //    }
+        //}
+
+        //particle_beam.cells_in_sight.clear();
     }
 
     //Update explosion sprites and remove when done with remove erase idiom
@@ -375,14 +425,14 @@ void Game::Draw()
         int health_bar_start_y = (t < 1) ? 0 : (SCRHEIGHT - HEALTH_BAR_HEIGHT) - 1;
         int health_bar_end_y = (t < 1) ? HEALTH_BAR_HEIGHT : SCRHEIGHT - 1;
 
-        for (int i = 0; i < (NUM_TANKS_BLUE); i++)
-        {
-            int health_bar_start_x = i * (HEALTH_BAR_WIDTH + HEALTH_BAR_SPACING) + HEALTH_BARS_OFFSET_X;
-            int health_bar_end_x = health_bar_start_x + HEALTH_BAR_WIDTH;
+        //for (int i = 0; i < (NUM_TANKS_BLUE); i++)
+        //{
+        //    int health_bar_start_x = i * (HEALTH_BAR_WIDTH + HEALTH_BAR_SPACING) + HEALTH_BARS_OFFSET_X;
+        //    int health_bar_end_x = health_bar_start_x + HEALTH_BAR_WIDTH;
 
-            screen->Bar(health_bar_start_x, health_bar_start_y, health_bar_end_x, health_bar_end_y, REDMASK);
-            screen->Bar(health_bar_start_x, health_bar_start_y + (int)((double)HEALTH_BAR_HEIGHT * (1 - ((double)sorted_tanks.at(i + begin)->health / (double)TANK_MAX_HEALTH))), health_bar_end_x, health_bar_end_y, GREENMASK);
-        }
+        //    screen->Bar(health_bar_start_x, health_bar_start_y, health_bar_end_x, health_bar_end_y, REDMASK);
+        //    screen->Bar(health_bar_start_x, health_bar_start_y + (int)((double)HEALTH_BAR_HEIGHT * (1 - ((double)sorted_tanks.at(i + begin)->health / (double)TANK_MAX_HEALTH))), health_bar_end_x, health_bar_end_y, GREENMASK);
+        //}
     }
 
     string frame_count_string = "FRAME: " + std::to_string(frame_count);

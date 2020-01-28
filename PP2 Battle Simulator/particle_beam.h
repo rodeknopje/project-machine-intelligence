@@ -11,6 +11,8 @@ class Particle_beam
     void tick(vector<Tank>& tanks);
     void Draw(Surface* screen);
 
+    vector<vec2> cells_in_sight;
+
     vec2 min_position;
     vec2 max_position;
 
