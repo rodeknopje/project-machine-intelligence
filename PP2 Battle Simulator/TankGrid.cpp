@@ -89,21 +89,21 @@ vector<Tank*> TankGrid::get_tanks_in_radius(int radius, float _x, float _y)
     int pos_x = (int)_x / cell_size;
     int pos_y = (int)_y / cell_size;
 
-    for (int y = 0; y < radius; y++)
+    for (int y = pos_y-1; y < pos_y+2; y++)
     {
         if (y > cell_amount - 1 || y < 0)
         {
             continue;
         }
 
-        for (int x = 0; x < radius; x++)
+        for (int x = pos_x-1; x < pos_x+2; x++)
         {
             if (x > cell_amount - 1 || x < 0)
             {
                 continue;
             }
 
-            for (auto& cell : cells[pos_x + x][pos_y + y])
+            for (auto& cell : cells[x][y])
             {
                 tanks.push_back(cell.second);
             }

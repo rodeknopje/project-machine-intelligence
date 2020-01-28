@@ -15,7 +15,7 @@
 #define HEALTH_BAR_SPACING 0
 
 #define MAX_FRAMES 2000
-#define FRAME_CAP 60
+#define FRAME_CAP 144
 
 //Global performance timer
 //M-PC     = 44306.7
@@ -198,6 +198,7 @@ void Game::Update(float deltaTime)
     //Update tanks
     for (Tank& tank : tanks)
     {
+        //return;
         if (tank.active)
         {
             //Check tank collision and nudge tanks away from each other
