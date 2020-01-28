@@ -26,7 +26,7 @@ void TankGrid::move_tank(int _x, int _y, const int ID, Tank* tank)
     int x = (int)tank->position.x / cell_size;
     int y = (int)tank->position.y / cell_size;
 
-    if (x < 0 || y < 0 || x > cell_size - 1 || y > cell_size - 1)
+    if (x < 0 || y < 0 || x > map_size || y > map_size)
     {
         tank->active = false;
 
@@ -45,7 +45,7 @@ void TankGrid::del_tank(int _x, int _y, const int ID)
 {
     //cells[_x][_y].erase(ID);
 
-    show_tanks();
+    //show_tanks();
 }
 
 Tank* TankGrid::find_closest_enemy(float _x, float _y, int radius, int ID, int allignment)
@@ -57,13 +57,13 @@ vector<Tank*> TankGrid::get_enemies_in_cell(float _x, float _y, int allignment)
 {
     vector<Tank*> tanks;
 
-    int x=(int)_x/cell_size;
-    int y=(int)_y/cell_size;
-
-    if (x < 0 || y < 0 || x > cell_size - 1 || y > cell_size - 1)
+    if (_x < 0 || _y < 0 || _x > map_size  || _y > map_size)
     {
         return tanks;
     }
+
+    int x=(int)_x/cell_size;
+    int y=(int)_y/cell_size;
 
     for (auto& cell : cells[x][y])
     {
@@ -86,9 +86,9 @@ void TankGrid::show_tanks()
         return;
     system("cls");
 
-    for (int y = 0; y < cell_size; y++)
+    for (int y = 0; y < cell_amount; y++)
     {
-        for (int x = 0; x < cell_size; x++)
+        for (int x = 0; x < cell_amount; x++)
         {
             int csize = cells[x][y].size();
 

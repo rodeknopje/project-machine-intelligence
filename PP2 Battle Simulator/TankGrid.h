@@ -9,7 +9,12 @@ class Game;
 class TankGrid
 {
   public:
-    static const int cell_size = 35;
+    // groote van de map
+    static const int map_size    = 1600;
+    // de wortel van het aantal cellen in het grid.
+    static const int cell_amount = 100;
+    // de groote van een individueele cell.
+    static const int cell_size   = (int)(map_size/cell_amount);
 
 	TankGrid(Game& _game);
 	void add_tank(int _x, int _y, Tank* tank);
@@ -22,7 +27,7 @@ class TankGrid
     std::map<int, Tank*> get_cell(int _x,int _y);
 
   private:
-    std::map<int, Tank*> cells[cell_size][cell_size];
+    std::map<int, Tank*> cells[cell_amount][cell_amount];
     bool display = false;
     Game& game;
 };

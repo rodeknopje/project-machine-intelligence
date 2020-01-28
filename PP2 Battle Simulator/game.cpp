@@ -98,6 +98,8 @@ void Game::Init()
         sorted_tanks.push_back(&(tanks[tanks.size() - 1]));
     }
 
+    cout << tanks.at(tanks.size() - 1).position.x << "-" << tanks.at(tanks.size() - 1).position.y << endl;
+
     particle_beams.push_back(Particle_beam(vec2(SCRWIDTH / 2, SCRHEIGHT / 2), vec2(100, 50), &particle_beam_sprite, PARTICLE_BEAM_HIT_VALUE));
     particle_beams.push_back(Particle_beam(vec2(80, 80), vec2(100, 50), &particle_beam_sprite, PARTICLE_BEAM_HIT_VALUE));
     particle_beams.push_back(Particle_beam(vec2(1200, 600), vec2(100, 50), &particle_beam_sprite, PARTICLE_BEAM_HIT_VALUE));
@@ -340,6 +342,21 @@ void Game::Draw()
         if ((tPos.x >= 0) && (tPos.x < SCRWIDTH) && (tPos.y >= HEALTH_BAR_HEIGHT) && (tPos.y < maxheight))
         {
             explosion.Draw(screen);
+        }
+    }
+
+    for (int x = 0; x < SCRWIDTH; x += tankgrid.cell_size)
+    {
+        for (int y = 0; y < SCRHEIGHT; y++)
+        {
+            background.GetBuffer()[x + y * SCRWIDTH] = (0xE61F1C);
+        }
+    }
+    for (int x = 0; x < SCRHEIGHT; x += tankgrid.cell_size)
+    {
+        for (int y = 0; y < SCRWIDTH; y++)
+        {
+            background.GetBuffer()[y + x * SCRWIDTH] = (0xE61F1C);
         }
     }
 

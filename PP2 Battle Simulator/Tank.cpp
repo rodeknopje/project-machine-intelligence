@@ -59,7 +59,7 @@ void Tank::Tick()
         grid->move_tank(prev_x, prev_y, ID, this);
     }
 
-    // cout << "(" << (int)position.x/100 << "," << (int)position.y/100 << ")" << endl;
+    // cout << "(" << (int)position.x << "," << (int)position.y << ")" << endl;
 
     //Update reload time
     if (--reload_time <= 0.0f)
