@@ -7,7 +7,6 @@ namespace Tmpl8
 
 TankGrid::TankGrid(Game& _game) : game(_game)
 {
-
 }
 
 void TankGrid::add_tank(int _x, int _y, Tank* tank)
@@ -57,13 +56,13 @@ vector<Tank*> TankGrid::get_enemies_in_cell(float _x, float _y, int allignment)
 {
     vector<Tank*> tanks;
 
-    if (_x < 0 || _y < 0 || _x > map_size  || _y > map_size)
+    if (_x < 0 || _y < 0 || _x > map_size || _y > map_size)
     {
         return tanks;
     }
 
-    int x=(int)_x/cell_size;
-    int y=(int)_y/cell_size;
+    int x = (int)_x / cell_size;
+    int y = (int)_y / cell_size;
 
     for (auto& cell : cells[x][y])
     {
@@ -78,7 +77,41 @@ vector<Tank*> TankGrid::get_enemies_in_cell(float _x, float _y, int allignment)
     return tanks;
 }
 
+vector<Tank*> TankGrid::get_tanks_in_radius(int radius, float _x, float _y)
+{
+    vector<Tank*> tanks;
 
+    if (_x < 0 || _y < 0 || _x > map_size || _y > map_size)
+    {
+        return tanks;
+    }
+
+    int pos_x = (int)_x / cell_size;
+    int pos_y = (int)_y / cell_size;
+
+    for (int y = 0; y < radius; y++)
+    {
+        if (y > cell_amount - 1 || y < 0)
+        {
+            continue;
+        }
+
+        for (int x = 0; x < radius; x++)
+        {
+            if (x > cell_amount - 1 || x < 0)
+            {
+                continue;
+            }
+
+            for (auto& cell : cells[pos_x + x][pos_y + y])
+            {
+                tanks.push_back(cell.second);
+            }
+        }
+    }
+
+    return tanks;
+}
 
 void TankGrid::show_tanks()
 {

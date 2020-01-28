@@ -105,6 +105,24 @@ void Game::Init()
     particle_beams.push_back(Particle_beam(vec2(1200, 600), vec2(100, 50), &particle_beam_sprite, PARTICLE_BEAM_HIT_VALUE));
 
     tankgrid.show_tanks();
+
+
+
+
+    for (int x = 0; x < SCRWIDTH; x += tankgrid.cell_size)
+    {
+        for (int y = 0; y < SCRHEIGHT; y++)
+        {
+            background.GetBuffer()[x + y * SCRWIDTH] = (0xE61F1C);
+        }
+    }
+    for (int x = 0; x < SCRHEIGHT; x += tankgrid.cell_size)
+    {
+        for (int y = 0; y < SCRWIDTH; y++)
+        {
+            background.GetBuffer()[y + x * SCRWIDTH] = (0xE61F1C);
+        }
+    }
 }
 
 // -----------------------------------------------------------
@@ -183,17 +201,18 @@ void Game::Update(float deltaTime)
         if (tank.active)
         {
             //Check tank collision and nudge tanks away from each other
-            for (auto oTank : tankgrid.get_cell((int)tank.position.x / tankgrid.cell_size, (int)tank.position.y / tankgrid.cell_size))
+            //for (auto oTank : tankgrid.get_cell((int)tank.position.x / tankgrid.cell_size, (int)tank.position.y / tankgrid.cell_size))
+            for (auto oTank : tankgrid.get_tanks_in_radius(2, tank.position.x, tank.position.y))
             {
                 //continue;
-                if (tank.ID == oTank.second->ID) continue;
+                if (tank.ID == oTank->ID) continue;
 
-                vec2 dir = tank.Get_Position() - oTank.second->Get_Position();
+                vec2 dir = tank.Get_Position() - oTank->Get_Position();
 
                 float dirSquaredLen = dir.sqrLength();
 
-                float colSquaredLen = (tank.Get_collision_radius() * tank.Get_collision_radius()) + (oTank.second->Get_collision_radius() * oTank.second->Get_collision_radius());
-
+                float colSquaredLen = (tank.Get_collision_radius() * tank.Get_collision_radius()) + (oTank->Get_collision_radius() * oTank->Get_collision_radius());
+                //cout << colSquaredLen << endl;
                 if (dirSquaredLen < colSquaredLen)
                 {
                     tank.Push(dir.normalized(), 1.f);
@@ -342,21 +361,6 @@ void Game::Draw()
         if ((tPos.x >= 0) && (tPos.x < SCRWIDTH) && (tPos.y >= HEALTH_BAR_HEIGHT) && (tPos.y < maxheight))
         {
             explosion.Draw(screen);
-        }
-    }
-
-    for (int x = 0; x < SCRWIDTH; x += tankgrid.cell_size)
-    {
-        for (int y = 0; y < SCRHEIGHT; y++)
-        {
-            background.GetBuffer()[x + y * SCRWIDTH] = (0xE61F1C);
-        }
-    }
-    for (int x = 0; x < SCRHEIGHT; x += tankgrid.cell_size)
-    {
-        for (int y = 0; y < SCRWIDTH; y++)
-        {
-            background.GetBuffer()[y + x * SCRWIDTH] = (0xE61F1C);
         }
     }
 
