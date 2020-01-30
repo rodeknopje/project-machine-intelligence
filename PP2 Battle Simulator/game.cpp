@@ -144,6 +144,53 @@ void Tmpl8::Game::selectcell(int _x, int _y)
     }
 }
 
+void Tmpl8::Game::handle_tank_collision(int begin, SIZE_T end)
+{
+
+
+    for (int i = begin; i < end; i++)
+    {
+        //cout << i << endl;
+        auto& tank = tanks.at(i);
+        //cout << tank.ID << endl;
+        //return;
+        if (tank.active)
+        {
+            //Check tank collision and nudge tanks away from each other
+            //for (auto oTank : tankgrid.get_cell((int)tank.position.x / tankgrid.cell_size, (int)tank.position.y / tankgrid.cell_size))
+            for (auto oTank : tankgrid.get_tanks_in_radius(2, tank.position.x, tank.position.y))
+            {
+                //continue;
+                if (tank.ID == oTank->ID) continue;
+
+                vec2 dir = tank.Get_Position() - oTank->Get_Position();
+
+                float dirSquaredLen = dir.sqrLength();
+
+                float colSquaredLen = (tank.Get_collision_radius() * tank.Get_collision_radius()) + (oTank->Get_collision_radius() * oTank->Get_collision_radius());
+                //cout << colSquaredLen << endl;
+                if (dirSquaredLen < colSquaredLen)
+                {
+                    tank.Push(dir.normalized(), 1.f);
+                }
+            }
+
+            //Move tanks according to speed and nudges (see above) also reload
+            tank.Tick();
+
+            //Shoot at closest target if reloaded
+            if (tank.Rocket_Reloaded())
+            {
+                Tank& target = FindClosestEnemy(tank);
+
+                rockets.push_back(Rocket(tank.position, (target.Get_Position() - tank.position).normalized() * 3, rocket_radius, tank.allignment, ((tank.allignment == RED) ? &rocket_red : &rocket_blue)));
+
+                tank.Reload_Rocket();
+            }
+        }
+    }
+}
+
 // -----------------------------------------------------------
 // Close down application
 // -----------------------------------------------------------
@@ -235,45 +282,7 @@ void Tmpl8::Game::sort_tanks()
 // -----------------------------------------------------------
 void Game::Update(float deltaTime)
 {
-    //Update tanks
-    for (Tank& tank : tanks)
-    {
-        //return;
-        if (tank.active)
-        {
-            //Check tank collision and nudge tanks away from each other
-            //for (auto oTank : tankgrid.get_cell((int)tank.position.x / tankgrid.cell_size, (int)tank.position.y / tankgrid.cell_size))
-            for (auto oTank : tankgrid.get_tanks_in_radius(2, tank.position.x, tank.position.y))
-            {
-                //continue;
-                if (tank.ID == oTank->ID) continue;
-
-                vec2 dir = tank.Get_Position() - oTank->Get_Position();
-
-                float dirSquaredLen = dir.sqrLength();
-
-                float colSquaredLen = (tank.Get_collision_radius() * tank.Get_collision_radius()) + (oTank->Get_collision_radius() * oTank->Get_collision_radius());
-                //cout << colSquaredLen << endl;
-                if (dirSquaredLen < colSquaredLen)
-                {
-                    tank.Push(dir.normalized(), 1.f);
-                }
-            }
-
-            //Move tanks according to speed and nudges (see above) also reload
-            tank.Tick();
-
-            //Shoot at closest target if reloaded
-            if (tank.Rocket_Reloaded())
-            {
-                Tank& target = FindClosestEnemy(tank);
-
-                rockets.push_back(Rocket(tank.position, (target.Get_Position() - tank.position).normalized() * 3, rocket_radius, tank.allignment, ((tank.allignment == RED) ? &rocket_red : &rocket_blue)));
-
-                tank.Reload_Rocket();
-            }
-        }
-    }
+    handle_tank_collision(0, 1279);
 
     //Update smoke plumes
     for (Smoke& smoke : smokes)

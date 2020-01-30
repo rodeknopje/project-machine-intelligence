@@ -26,11 +26,11 @@ void TankGrid::move_tank(int _x, int _y, const int ID, Tank* tank)
     int x = (int)tank->position.x / cell_size;
     int y = (int)tank->position.y / cell_size;
 
-    if (std::find(laser_cells.begin(), laser_cells.end(), vec2(x, y)) != laser_cells.end())
-    {
-        game.hit_tank(*tank,50);
-        //return;
-    }
+    //if (std::find(laser_cells.begin(), laser_cells.end(), vec2(x, y)) != laser_cells.end())
+    //{
+    //    game.hit_tank(*tank,50);
+    //    //return;
+    //}
 
     if (x < 0 || y < 0 || x > map_size || y > map_size)
     {

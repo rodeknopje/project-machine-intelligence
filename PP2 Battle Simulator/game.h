@@ -23,6 +23,8 @@ class Game
     void initialize_particle_beams(Particle_beam& beam);
 
     void selectcell(int _x, int _y);
+    void handle_tank_collision(int begin, SIZE_T end);
+
 
     // --------testing variables---------
     std::chrono::steady_clock::time_point start_time; 

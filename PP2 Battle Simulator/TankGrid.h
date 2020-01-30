@@ -10,7 +10,7 @@ class TankGrid
 {
   public:
     // groote van de map
-    static const int map_size    = 2000;
+    static const int map_size    = 1600;
     // de wortel van het aantal cellen in het grid.
     static const int cell_amount = 100;
     // de groote van een individueele cell.
