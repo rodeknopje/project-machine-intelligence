@@ -63,6 +63,7 @@ class Game
     }
 
   private:
+
     Surface* screen;
 
     vector<Tank> tanks;

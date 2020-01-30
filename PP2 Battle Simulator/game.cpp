@@ -53,20 +53,22 @@ const static vec2 rocket_size(25, 24);
 const static float tank_radius = 12.f;
 const static float rocket_radius = 10.f;
 
+const unsigned int threadCount = thread::hardware_concurrency();
+
 // -----------------------------------------------------------
 // Initialize the application
 // -----------------------------------------------------------
 void Game::Init()
 {
 
+    cout << thread::hardware_concurrency() << endl;
+
     frame_count_font = new Font("assets/digital_small.png", "ABCDEFGHIJKLMNOPQRSTUVWXYZ:?!=-0123456789.");
 
     time_between_Frames = (int)((float)1 / FRAME_CAP * 1000000);
     cout << time_between_Frames << endl;
 
-    
-
-        tanks.reserve(NUM_TANKS_BLUE + NUM_TANKS_RED);
+    tanks.reserve(NUM_TANKS_BLUE + NUM_TANKS_RED);
     sorted_tanks.reserve(NUM_TANKS_BLUE + NUM_TANKS_RED);
     uint rows = (uint)sqrt(NUM_TANKS_BLUE + NUM_TANKS_RED);
     uint max_rows = 12;
@@ -151,7 +153,6 @@ void Tmpl8::Game::selectcell(int _x, int _y)
 
 void Tmpl8::Game::handle_tank_collision(int begin, SIZE_T end)
 {
-
     for (int i = begin; i < end; i++)
     {
         //cout << i << endl;
@@ -189,10 +190,11 @@ void Tmpl8::Game::handle_tank_collision(int begin, SIZE_T end)
             {
                 Tank& target = FindClosestEnemy(tank);
 
-                //std::lock_guard<std::mutex> guard(mutex);
-                rockets.push_back(Rocket(tank.position, (target.Get_Position() - tank.position).normalized() * 3, rocket_radius, tank.allignment, ((tank.allignment == RED) ? &rocket_red : &rocket_blue)));
-                //mutex.unlock();
-                //mutex.unlock();
+                {
+                    std::lock_guard<std::mutex> guard(mutex);
+
+                    rockets.push_back(Rocket(tank.position, (target.Get_Position() - tank.position).normalized() * 3, rocket_radius, tank.allignment, ((tank.allignment == RED) ? &rocket_red : &rocket_blue)));
+                }
 
                 tank.Reload_Rocket();
             }
@@ -242,7 +244,7 @@ Tank& Game::FindClosestEnemy(Tank& current_tank)
     {
         for (int i = 0; i < NUM_TANKS_BLUE; i++)
         {
-            if (tanks.at(i).allignment != current_tank.allignment && tanks.at(i).active)
+            if (tanks.at(i).active)
             {
                 float sqrDist = fabsf((tanks.at(i).Get_Position() - current_tank.Get_Position()).sqrLength());
                 if (sqrDist < closest_distance)
@@ -257,7 +259,7 @@ Tank& Game::FindClosestEnemy(Tank& current_tank)
     {
         for (int i = NUM_TANKS_BLUE; i < NUM_TANKS_BLUE + NUM_TANKS_RED; i++)
         {
-            if (tanks.at(i).allignment != current_tank.allignment && tanks.at(i).active)
+            if (tanks.at(i).active)
             {
                 float sqrDist = fabsf((tanks.at(i).Get_Position() - current_tank.Get_Position()).sqrLength());
                 if (sqrDist < closest_distance)
@@ -309,16 +311,34 @@ void Tmpl8::Game::sort_tanks()
 // -----------------------------------------------------------
 void Game::Update(float deltaTime)
 {
+    ThreadPool pool(threadCount);
 
-    handle_tank_collision(0, NUM_TANKS_BLUE);
-    handle_tank_collision(NUM_TANKS_BLUE, NUM_TANKS_BLUE + NUM_TANKS_RED);
+    int range = (NUM_TANKS_BLUE + NUM_TANKS_RED) / threadCount;
+    int mod =   (NUM_TANKS_BLUE + NUM_TANKS_RED) % threadCount;
 
-    //thread t1 = thread(&Game::handle_tank_collision, this, 0, NUM_TANKS_BLUE);
-    //thread t2 = thread(&Game::handle_tank_collision, this, NUM_TANKS_BLUE, NUM_TANKS_BLUE + NUM_TANKS_RED);
+    int current = 0;
 
-    //cout << frame_count << endl;
-    //t1.join();
-    //t2.join();
+    vector<future<void>*> futures;
+
+    for (size_t i = 0; i < threadCount; i++)
+    {
+        int begin   = current;
+        int end     = current + range + (mod-- > 0 ? 1 : 0);
+
+        current = end;
+
+        future<void> f1 = pool.enqueue([&]() { handle_tank_collision(begin, end); });
+        // f1.get();
+        cout << i << "[" << begin << "-" << end << endl;
+
+        //futures.push_back(&f1);
+    }
+
+    for (auto f : futures)
+        f->get();
+
+    //future<void> f1 = pool.enqueue([&]() { handle_tank_collision(0, NUM_TANKS_BLUE); });
+    //future<void> f2 = pool.enqueue([&](){handle_tank_collision(NUM_TANKS_BLUE, NUM_TANKS_BLUE + NUM_TANKS_RED);});
 
     //Update smoke plumes
     for (Smoke& smoke : smokes)
@@ -393,7 +413,9 @@ void Game::Update(float deltaTime)
 
     explosions.erase(std::remove_if(explosions.begin(), explosions.end(), [](const Explosion& explosion) { return explosion.done(); }), explosions.end());
     //t1.join();
-    //t2.join();
+    ////t2.join();
+    //f1.wait();
+    //f2.wait();
 }
 
 void Game::Draw()
