@@ -15,6 +15,7 @@
 #define HEALTH_BAR_SPACING 0
 
 #define MAX_FRAMES 2000
+
 #define FRAME_CAP 60
 
 //Global performance timer
@@ -57,11 +58,15 @@ const static float rocket_radius = 10.f;
 // -----------------------------------------------------------
 void Game::Init()
 {
+
     frame_count_font = new Font("assets/digital_small.png", "ABCDEFGHIJKLMNOPQRSTUVWXYZ:?!=-0123456789.");
 
     time_between_Frames = (int)((float)1 / FRAME_CAP * 1000000);
+    cout << time_between_Frames << endl;
 
-    tanks.reserve(NUM_TANKS_BLUE + NUM_TANKS_RED);
+    
+
+        tanks.reserve(NUM_TANKS_BLUE + NUM_TANKS_RED);
     sorted_tanks.reserve(NUM_TANKS_BLUE + NUM_TANKS_RED);
     uint rows = (uint)sqrt(NUM_TANKS_BLUE + NUM_TANKS_RED);
     uint max_rows = 12;
@@ -147,7 +152,6 @@ void Tmpl8::Game::selectcell(int _x, int _y)
 void Tmpl8::Game::handle_tank_collision(int begin, SIZE_T end)
 {
 
-
     for (int i = begin; i < end; i++)
     {
         //cout << i << endl;
@@ -160,7 +164,7 @@ void Tmpl8::Game::handle_tank_collision(int begin, SIZE_T end)
             //for (auto oTank : tankgrid.get_cell((int)tank.position.x / tankgrid.cell_size, (int)tank.position.y / tankgrid.cell_size))
             for (auto oTank : tankgrid.get_tanks_in_radius(2, tank.position.x, tank.position.y))
             {
-               
+
                 //cout << "a" << endl;
                 //continue;
                 if (tank.ID == oTank->ID) continue;
@@ -185,7 +189,7 @@ void Tmpl8::Game::handle_tank_collision(int begin, SIZE_T end)
             {
                 Tank& target = FindClosestEnemy(tank);
 
-                std::lock_guard<std::mutex> guard(mutex);
+                //std::lock_guard<std::mutex> guard(mutex);
                 rockets.push_back(Rocket(tank.position, (target.Get_Position() - tank.position).normalized() * 3, rocket_radius, tank.allignment, ((tank.allignment == RED) ? &rocket_red : &rocket_blue)));
                 //mutex.unlock();
                 //mutex.unlock();
@@ -213,14 +217,14 @@ void Tmpl8::Game::initialize_particle_beams(Particle_beam& beam)
             int xpos = x / tankgrid.cell_size;
             int ypos = y / tankgrid.cell_size;
 
-            if (xpos > 0 && ypos > 0 && xpos < tankgrid.cell_amount - 1 && ypos < tankgrid.cell_amount - 1)
+            if ((xpos > 0 && ypos > 0 && xpos < tankgrid.cell_amount - 1 && ypos < tankgrid.cell_amount - 1) == false)
             {
-                //cout << xpos << "-" << ypos << endl;
-
-                beam.cells_in_sight.emplace(vec2(x / tankgrid.cell_size, y / tankgrid.cell_size));
-
-                selectcell(x / tankgrid.cell_size, y / tankgrid.cell_size);
+                return;
             }
+
+            beam.cells_in_sight.emplace(vec2(xpos, ypos));
+
+            selectcell(xpos, ypos);
         }
     }
 }
@@ -234,19 +238,36 @@ Tank& Game::FindClosestEnemy(Tank& current_tank)
 
     int closest_index = 0;
 
-    for (int i = 0; i < tanks.size(); i++)
+    if (current_tank.allignment == 1)
     {
-        if (tanks.at(i).allignment != current_tank.allignment && tanks.at(i).active)
+        for (int i = 0; i < NUM_TANKS_BLUE; i++)
         {
-            float sqrDist = fabsf((tanks.at(i).Get_Position() - current_tank.Get_Position()).sqrLength());
-            if (sqrDist < closest_distance)
+            if (tanks.at(i).allignment != current_tank.allignment && tanks.at(i).active)
             {
-                closest_distance = sqrDist;
-                closest_index = i;
+                float sqrDist = fabsf((tanks.at(i).Get_Position() - current_tank.Get_Position()).sqrLength());
+                if (sqrDist < closest_distance)
+                {
+                    closest_distance = sqrDist;
+                    closest_index = i;
+                }
             }
         }
     }
-
+    else
+    {
+        for (int i = NUM_TANKS_BLUE; i < NUM_TANKS_BLUE + NUM_TANKS_RED; i++)
+        {
+            if (tanks.at(i).allignment != current_tank.allignment && tanks.at(i).active)
+            {
+                float sqrDist = fabsf((tanks.at(i).Get_Position() - current_tank.Get_Position()).sqrLength());
+                if (sqrDist < closest_distance)
+                {
+                    closest_distance = sqrDist;
+                    closest_index = i;
+                }
+            }
+        }
+    }
     return tanks.at(closest_index);
 }
 
@@ -289,16 +310,15 @@ void Tmpl8::Game::sort_tanks()
 void Game::Update(float deltaTime)
 {
 
+    handle_tank_collision(0, NUM_TANKS_BLUE);
+    handle_tank_collision(NUM_TANKS_BLUE, NUM_TANKS_BLUE + NUM_TANKS_RED);
 
-    //handle_tank_collision(0, NUM_TANKS_BLUE);
-    //handle_tank_collision(NUM_TANKS_BLUE, NUM_TANKS_BLUE+NUM_TANKS_RED);
+    //thread t1 = thread(&Game::handle_tank_collision, this, 0, NUM_TANKS_BLUE);
+    //thread t2 = thread(&Game::handle_tank_collision, this, NUM_TANKS_BLUE, NUM_TANKS_BLUE + NUM_TANKS_RED);
 
-    thread t1 = thread(&Game::handle_tank_collision, this, 0, NUM_TANKS_BLUE);
-    thread t2 = thread(&Game::handle_tank_collision, this, NUM_TANKS_BLUE, NUM_TANKS_BLUE + NUM_TANKS_RED);
     //cout << frame_count << endl;
     //t1.join();
     //t2.join();
- 
 
     //Update smoke plumes
     for (Smoke& smoke : smokes)
@@ -371,10 +391,9 @@ void Game::Update(float deltaTime)
         explosion.Tick();
     }
 
-
     explosions.erase(std::remove_if(explosions.begin(), explosions.end(), [](const Explosion& explosion) { return explosion.done(); }), explosions.end());
-    t1.join();
-    t2.join();    
+    //t1.join();
+    //t2.join();
 }
 
 void Game::Draw()

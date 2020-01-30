@@ -55,10 +55,10 @@ void Tank::Tick()
 
     if ((int)position.x/grid->cell_size != prev_x || (int)position.y/grid->cell_size != prev_y)
     {    
-        //cout << ID << " (" << (int)position.x / grid->size <<"," << (int)position.y / grid->size<<")" << " != (" << prev_x << ","<< prev_y<<")" << endl ;
         grid->move_tank(prev_x, prev_y, ID, this);
     }
 
+        //cout << ID << " (" << (int)position.x / grid->size <<"," << (int)position.y / grid->size<<")" << " != (" << prev_x << ","<< prev_y<<")" << endl ;
     // cout << "(" << (int)position.x << "," << (int)position.y << ")" << endl;
 
     //Update reload time

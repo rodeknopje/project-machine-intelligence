@@ -15,6 +15,9 @@ class TankGrid
     static const int cell_amount = 100;
     // de groote van een individueele cell.
     static const int cell_size   = (int)(map_size/cell_amount);
+    // tweedminionale array met een lijst van tanks.
+    std::map<int, Tank*> cells[cell_amount][cell_amount];
+
 
 	TankGrid(Game& _game);
 	void add_tank(int _x, int _y, Tank* tank);
@@ -31,7 +34,6 @@ class TankGrid
     std::map<int, Tank*> get_cell(int _x,int _y);
 
   private:
-    std::map<int, Tank*> cells[cell_amount][cell_amount];
     bool display = false;
     Game& game;
 };
