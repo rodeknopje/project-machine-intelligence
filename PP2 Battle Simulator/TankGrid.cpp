@@ -1,5 +1,6 @@
 #include "TankGrid.h"
 #include "precomp.h"
+#include <algorithm>
 #include <map>
 
 namespace Tmpl8
@@ -24,6 +25,12 @@ void TankGrid::move_tank(int _x, int _y, const int ID, Tank* tank)
 
     int x = (int)tank->position.x / cell_size;
     int y = (int)tank->position.y / cell_size;
+
+    if (std::find(laser_cells.begin(), laser_cells.end(), vec2(x, y)) != laser_cells.end())
+    {
+        game.hit_tank(*tank,50);
+        //return;
+    }
 
     if (x < 0 || y < 0 || x > map_size || y > map_size)
     {
@@ -89,14 +96,14 @@ vector<Tank*> TankGrid::get_tanks_in_radius(int radius, float _x, float _y)
     int pos_x = (int)_x / cell_size;
     int pos_y = (int)_y / cell_size;
 
-    for (int y = pos_y-1; y < pos_y+2; y++)
+    for (int y = pos_y - 1; y < pos_y + 2; y++)
     {
         if (y > cell_amount - 1 || y < 0)
         {
             continue;
         }
 
-        for (int x = pos_x-1; x < pos_x+2; x++)
+        for (int x = pos_x - 1; x < pos_x + 2; x++)
         {
             if (x > cell_amount - 1 || x < 0)
             {

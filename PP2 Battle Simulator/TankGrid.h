@@ -12,7 +12,7 @@ class TankGrid
     // groote van de map
     static const int map_size    = 2000;
     // de wortel van het aantal cellen in het grid.
-    static const int cell_amount = 80;
+    static const int cell_amount = 100;
     // de groote van een individueele cell.
     static const int cell_size   = (int)(map_size/cell_amount);
 
@@ -25,6 +25,8 @@ class TankGrid
     vector<Tank*> get_tanks_in_radius(int radius ,float _x, float _y);
     void show_tanks();
     bool enemy_in_cell(int _x, int _y, int allignment);
+
+    vector<vec2> laser_cells;
 
     std::map<int, Tank*> get_cell(int _x,int _y);
 
