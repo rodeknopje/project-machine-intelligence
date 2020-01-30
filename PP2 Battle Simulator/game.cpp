@@ -1,7 +1,7 @@
 #include "precomp.h" // include (only) this in every .cpp file
 //1279
-#define NUM_TANKS_BLUE 50
-#define NUM_TANKS_RED 50
+#define NUM_TANKS_BLUE 1279
+#define NUM_TANKS_RED 1279
 
 #define TANK_MAX_HEALTH 1000
 #define ROCKET_HIT_VALUE 30
@@ -15,7 +15,7 @@
 #define HEALTH_BAR_SPACING 0
 
 #define MAX_FRAMES 2000
-#define FRAME_CAP 144
+#define FRAME_CAP 60
 
 //Global performance timer
 //M-PC     = 44306.7
@@ -153,21 +153,23 @@ void Game::Shutdown()
 
 void Tmpl8::Game::initialize_particle_beams(Particle_beam& beam)
 {
-    for (int y = beam.min_position.y; y < beam.max_position.y; y += tankgrid.cell_size)
+    for (int y = beam.min_position.y - tank_radius; y < beam.max_position.y + tank_radius; y += tankgrid.cell_size)
     {
-        for (int x = beam.min_position.x+1; x < beam.max_position.x; x += tankgrid.cell_size)
+        for (int x = beam.min_position.x - tank_radius; x < beam.max_position.x + tank_radius; x += tankgrid.cell_size)
         {
-            //beam.cells_in_sight.push_back(vec2(x / tankgrid.cell_size, y / tankgrid.cell_size));
+            int xpos = x / tankgrid.cell_size;
+            int ypos = y / tankgrid.cell_size;
 
-            tankgrid.laser_cells.push_back(vec2(x / tankgrid.cell_size, y / tankgrid.cell_size));
+            if (xpos > 0 && ypos > 0 && xpos < tankgrid.cell_amount - 1 && ypos < tankgrid.cell_amount - 1)
+            {
+                //cout << xpos << "-" << ypos << endl;
 
-            selectcell(x / tankgrid.cell_size, y / tankgrid.cell_size);
+                beam.cells_in_sight.emplace(vec2(x / tankgrid.cell_size, y / tankgrid.cell_size));
 
-            //cout << "[" << x / tankgrid.cell_size << ", " << y / tankgrid.cell_size << "]";
+                selectcell(x / tankgrid.cell_size, y / tankgrid.cell_size);
+            }
         }
-        //cout << endl;
     }
-    //cout << endl;
 }
 
 // -----------------------------------------------------------
@@ -283,7 +285,9 @@ void Game::Update(float deltaTime)
     for (Rocket& rocket : rockets)
     {
         if (rocket.active == false)
+        {
             continue;
+        }
 
         rocket.Tick();
 
@@ -318,43 +322,31 @@ void Game::Update(float deltaTime)
 
     for (Particle_beam& particle_beam : particle_beams)
     {
-        particle_beam.tick(tanks);
+        particle_beam.tick2();
 
-        //Damage all tanks within the damage window of the beam (the window is an axis-aligned bounding box)
-        for (Tank& tank : tanks)
+        for (auto& pos : particle_beam.cells_in_sight)
         {
-
-            if (tank.active && particle_beam.rectangle.intersectsCircle(tank.Get_Position(), tank.Get_collision_radius()))
+            //Damage all tanks within the damage window of the beam (the window is an axis-aligned bounding box)
+            for (auto& tank : tankgrid.get_cell(pos.x, pos.y))
             {
-                if (hit_tank(tank, particle_beam.damage))
+                if (tank.second->active && particle_beam.rectangle.intersectsCircle(tank.second->Get_Position(), tank.second->Get_collision_radius()))
                 {
-                    smokes.push_back(Smoke(smoke, tank.position - vec2(0, 48)));
+                    if (hit_tank(*tank.second, particle_beam.damage))
+                    {
+                        smokes.push_back(Smoke(smoke, tank.second->position - vec2(0, 48)));
+                    }
                 }
             }
         }
     }
 
-    //for (auto& pos : particle_beam.cells_in_sight)
-    //{
-    //    for (auto& tank : tankgrid.get_cell(pos.x, pos.y))
-    //    {
-    //        if (hit_tank(*tank.second, particle_beam.damage))
-    //        {
-    //            smokes.push_back(Smoke(smoke, tank.second->position - vec2(0, 48)));
-    //        }
-    //    }
-    //}
+    //Update explosion sprites and remove when done with remove erase idiom
+    for (Explosion& explosion : explosions)
+    {
+        explosion.Tick();
+    }
 
-    //particle_beam.cells_in_sight.clear();
-
-
-//Update explosion sprites and remove when done with remove erase idiom
-for (Explosion& explosion : explosions)
-{
-    explosion.Tick();
-}
-
-explosions.erase(std::remove_if(explosions.begin(), explosions.end(), [](const Explosion& explosion) { return explosion.done(); }), explosions.end());
+    explosions.erase(std::remove_if(explosions.begin(), explosions.end(), [](const Explosion& explosion) { return explosion.done(); }), explosions.end());
 }
 
 void Game::Draw()
@@ -406,13 +398,15 @@ void Game::Draw()
     }
 
     for (Particle_beam& particle_beam : particle_beams)
+    {
         particle_beam.Draw(screen);
+    }
 
     for (Explosion& explosion : explosions)
     {
         vec2 tPos = explosion.position;
         // tread marks
-        if ((tPos.x >= 0) && (tPos.x < SCRWIDTH) && (tPos.y >= HEALTH_BAR_HEIGHT) && (tPos.y < maxheight))
+        //if ((tPos.x >= 0) && (tPos.x < SCRWIDTH) && (tPos.y >= HEALTH_BAR_HEIGHT) && (tPos.y < maxheight))
         {
             explosion.Draw(screen);
         }
@@ -496,6 +490,7 @@ void Game::Tick(float deltaTime)
     //cout << "This goes to the console window." << std::endl;
 
     //Print frame count
+
     frame_count++;
 }
 

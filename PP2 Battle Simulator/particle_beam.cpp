@@ -25,6 +25,14 @@ void Particle_beam::tick(vector<Tank>& tanks)
     }
 }
 
+void Particle_beam::tick2()
+{
+    if (++sprite_frame == 30)
+    {
+        sprite_frame = 0;
+    }
+}
+
 void Particle_beam::Draw(Surface* screen)
 {
     vec2 position = rectangle.min;

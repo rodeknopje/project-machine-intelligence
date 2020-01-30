@@ -100,7 +100,8 @@ class vec2 // adapted from https://github.com/dcow/RayTracer
     vec2 operator*(const vec2& operand) const { return vec2(x * operand.x, y * operand.y); }
     vec2 operator*(float operand) const { return vec2(x * operand, y * operand); }
     vec2 operator/(float operand) const { return vec2(x / operand, y / operand); }
-    boolean operator==(vec2 other) const { return other.x==x&&other.y==y; }
+    boolean operator==(vec2 other) const { return other.x == x && other.y == y; }
+    boolean operator<(vec2 other) const { return true; };
 
     void operator-=(const vec2& a)
     {
