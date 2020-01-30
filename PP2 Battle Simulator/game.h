@@ -1,5 +1,6 @@
 #pragma once
 #include <set>
+#include <mutex>
 namespace Tmpl8
 {
 //forward declarations
@@ -70,6 +71,8 @@ class Game
     std::vector<Tank*> sorted_tanks;
 
 	void sort_tanks();
+
+    std::mutex mutex;
 
 	TankGrid tankgrid = TankGrid(*this);
 

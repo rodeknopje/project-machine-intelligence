@@ -160,6 +160,8 @@ void Tmpl8::Game::handle_tank_collision(int begin, SIZE_T end)
             //for (auto oTank : tankgrid.get_cell((int)tank.position.x / tankgrid.cell_size, (int)tank.position.y / tankgrid.cell_size))
             for (auto oTank : tankgrid.get_tanks_in_radius(2, tank.position.x, tank.position.y))
             {
+               
+                //cout << "a" << endl;
                 //continue;
                 if (tank.ID == oTank->ID) continue;
 
@@ -167,9 +169,9 @@ void Tmpl8::Game::handle_tank_collision(int begin, SIZE_T end)
 
                 float dirSquaredLen = dir.sqrLength();
 
-                float colSquaredLen = (tank.Get_collision_radius() * tank.Get_collision_radius()) + (oTank->Get_collision_radius() * oTank->Get_collision_radius());
+                //float colSquaredLen = (tank.Get_collision_radius() * tank.Get_collision_radius()) + (oTank->Get_collision_radius() * oTank->Get_collision_radius());
                 //cout << colSquaredLen << endl;
-                if (dirSquaredLen < colSquaredLen)
+                if (dirSquaredLen < 288)
                 {
                     tank.Push(dir.normalized(), 1.f);
                 }
@@ -183,12 +185,16 @@ void Tmpl8::Game::handle_tank_collision(int begin, SIZE_T end)
             {
                 Tank& target = FindClosestEnemy(tank);
 
+                std::lock_guard<std::mutex> guard(mutex);
                 rockets.push_back(Rocket(tank.position, (target.Get_Position() - tank.position).normalized() * 3, rocket_radius, tank.allignment, ((tank.allignment == RED) ? &rocket_red : &rocket_blue)));
+                //mutex.unlock();
+                //mutex.unlock();
 
                 tank.Reload_Rocket();
             }
         }
     }
+    //cout << frame_count << endl;
 }
 
 // -----------------------------------------------------------
@@ -282,7 +288,17 @@ void Tmpl8::Game::sort_tanks()
 // -----------------------------------------------------------
 void Game::Update(float deltaTime)
 {
-    handle_tank_collision(0, 1279);
+
+
+    //handle_tank_collision(0, NUM_TANKS_BLUE);
+    //handle_tank_collision(NUM_TANKS_BLUE, NUM_TANKS_BLUE+NUM_TANKS_RED);
+
+    thread t1 = thread(&Game::handle_tank_collision, this, 0, NUM_TANKS_BLUE);
+    thread t2 = thread(&Game::handle_tank_collision, this, NUM_TANKS_BLUE, NUM_TANKS_BLUE + NUM_TANKS_RED);
+    //cout << frame_count << endl;
+    //t1.join();
+    //t2.join();
+ 
 
     //Update smoke plumes
     for (Smoke& smoke : smokes)
@@ -355,7 +371,10 @@ void Game::Update(float deltaTime)
         explosion.Tick();
     }
 
+
     explosions.erase(std::remove_if(explosions.begin(), explosions.end(), [](const Explosion& explosion) { return explosion.done(); }), explosions.end());
+    t1.join();
+    t2.join();    
 }
 
 void Game::Draw()
