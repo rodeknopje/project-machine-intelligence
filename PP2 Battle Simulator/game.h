@@ -17,6 +17,7 @@ class Game
     void Init();
     void Shutdown();
     void Update(float deltaTime);
+    void handle_particle_beams();
     void Draw();
     void Tick(float deltaTime);
     void insertion_sort_tanks_health(const std::vector<Tank>& original, std::vector<const Tank*>& sorted_tanks, UINT16 begin, UINT16 end);
@@ -25,7 +26,7 @@ class Game
 
     void selectcell(int _x, int _y);
     void handle_tank_collision(int begin, SIZE_T end);
-
+    void handle_rockets();
 
     // --------testing variables---------
     std::chrono::steady_clock::time_point start_time; 
@@ -70,6 +71,10 @@ class Game
 
     std::set<Tank*> hitted_tanks;
     std::vector<Tank*> sorted_tanks;
+
+
+    const unsigned int threadcount = thread::hardware_concurrency();
+    ThreadPool& pool = ThreadPool(threadcount);
 
 	void sort_tanks();
 
