@@ -24,7 +24,7 @@
 //T-Pc     =
 //T-Laptop =
 
-#define REF_PERFORMANCE 44301.9 //UPDATE THIS WITH YOUR REFERENCE PERFORMANCE (see console after 2k frames)
+#define REF_PERFORMANCE 44309 //UPDATE THIS WITH YOUR REFERENCE PERFORMANCE (see console after 2k frames)
 static timer perf_timer;
 static float duration;
 
@@ -154,20 +154,13 @@ void Tmpl8::Game::handle_tank_collision(int begin, SIZE_T end)
 
     for (int i = begin; i < end; i++)
     {
-        //cout << i << endl;
         auto& tank = tanks.at(i);
-        //cout << tank.ID << endl;
-        //return;
+
         if (tank.active)
         {
             //Check tank collision and nudge tanks away from each other
-            //for (auto oTank : tankgrid.get_cell((int)tank.position.x / tankgrid.cell_size, (int)tank.position.y / tankgrid.cell_size))
-
             for (auto oTank : tankgrid.get_tanks_in_radius(2, tank.position.x, tank.position.y))
             {
-
-                //cout << "a" << endl;
-                //continue;
                 if (tank.ID == oTank->ID) continue;
 
                 vec2 dir = tank.Get_Position() - oTank->Get_Position();
@@ -175,22 +168,20 @@ void Tmpl8::Game::handle_tank_collision(int begin, SIZE_T end)
                 float dirSquaredLen = dir.sqrLength();
 
                 //float colSquaredLen = (tank.Get_collision_radius() * tank.Get_collision_radius()) + (oTank->Get_collision_radius() * oTank->Get_collision_radius());
-                //cout << colSquaredLen << endl;
                 if (dirSquaredLen < 288)
                 {
                     std::lock_guard<std::mutex> guard(mutex);
+
                     tank.Push(dir.normalized(), 1.f);
                 }
             }
-
             //Move tanks according to speed and nudges (see above) also reload
             {
                 std::lock_guard<std::mutex> guard(mutex2);
+
                 tank.Tick();
             }
-
             //Shoot at closest target if reloaded
-
             if (tank.Rocket_Reloaded())
             {
                 Tank& target = FindClosestEnemy(tank);
@@ -352,14 +343,14 @@ void Tmpl8::Game::handle_rockets()
 // -----------------------------------------------------------
 void Game::Update(float deltaTime)
 {
-    int part = 319;
-    int mod = 6;
+    //int part = 319;
+    //int mod = 6;
 
     // Gebruik onderstaande berekening als je het aantal tanks veranderdt.
     // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 
-    // int part = tanks.size() / threadcount;
-    // int mod = tanks.size()  % threadcount;
+    int part    = tanks.size() / threadcount;
+    int mod     = tanks.size() % threadcount;
 
     int current = 0;
 
