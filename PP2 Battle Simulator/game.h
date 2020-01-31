@@ -73,7 +73,7 @@ class Game
     std::vector<Tank*> sorted_tanks;
 
 
-    const unsigned int threadcount = thread::hardware_concurrency();
+    const unsigned int threadcount = thread::hardware_concurrency()-1;
     ThreadPool& pool = ThreadPool(threadcount);
 
 	void sort_tanks();

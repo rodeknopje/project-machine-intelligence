@@ -58,13 +58,12 @@ const static float rocket_radius = 10.f;
 // -----------------------------------------------------------
 void Game::Init()
 {
-
-    cout << thread::hardware_concurrency() << endl;
+    //cout << "Hallo Wouter of Gert, als jullie scherm meer dan 60fps aan kan moet je dit ff boven in de settings aanpassen." << endl;
+    //cout << "heel af en toe crasht de game door een memory fout, we konden niet achterhalen waar deze vandaan kwam." << endl;
 
     frame_count_font = new Font("assets/digital_small.png", "ABCDEFGHIJKLMNOPQRSTUVWXYZ:?!=-0123456789.");
 
     time_between_Frames = (int)((float)1 / FRAME_CAP * 1000000);
-    cout << time_between_Frames << endl;
 
     tanks.reserve(NUM_TANKS_BLUE + NUM_TANKS_RED);
     sorted_tanks.reserve(NUM_TANKS_BLUE + NUM_TANKS_RED);
@@ -129,8 +128,6 @@ void Game::Init()
             background.GetBuffer()[y + x * SCRWIDTH] = (0xE61F1C);
         }
     }
-
-    //selectcell(15, 15);
 }
 
 void Tmpl8::Game::selectcell(int _x, int _y)
@@ -218,9 +215,12 @@ void Tmpl8::Game::initialize_particle_beams(Particle_beam& beam)
             }
 
             beam.cells_in_sight.emplace(vec2(xpos, ypos));
-
-            selectcell(xpos, ypos);
         }
+    }
+
+    for (auto& pos : beam.cells_in_sight)
+    {
+        selectcell(pos.x, pos.y);
     }
 }
 
@@ -343,20 +343,19 @@ void Tmpl8::Game::handle_rockets()
 // -----------------------------------------------------------
 void Game::Update(float deltaTime)
 {
-    //int part = 319;
-    //int mod = 6;
+    /*   int part = 319;
+    int mod = 6;*/
 
     // Gebruik onderstaande berekening als je het aantal tanks veranderdt.
     // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 
-    int part    = tanks.size() / threadcount;
-    int mod     = tanks.size() % threadcount;
+    int part = tanks.size() / threadcount;
+    int mod = tanks.size() % threadcount;
 
     int current = 0;
 
     vector<future<void>*> futures;
 
-    start_timer();
     for (int i = 0; i < threadcount; i++)
     {
         int start = current;
@@ -366,11 +365,9 @@ void Game::Update(float deltaTime)
         current = end;
 
         futures.push_back(&pool.enqueue([&]() { handle_tank_collision(start, end); }));
-
         // ZONDER DIT PUNTJE WERKT HET BLIJKBAAR NIET, NIET VERWIJDEREN!
         cout << '.';
     }
-    stop_timer();
 
     //Update smoke plumes
     for (Smoke& smoke : smokes)
@@ -423,6 +420,17 @@ void Tmpl8::Game::handle_particle_beams()
 
 void Game::Draw()
 {
+    for (int i = 0; i < NUM_TANKS_BLUE + NUM_TANKS_RED; i++)
+    {
+
+        vec2 tPos = tanks.at(i).Get_Position();
+        // tread marks
+        if ((tPos.x >= 0) && (tPos.x < SCRWIDTH) && (tPos.y >= HEALTH_BAR_HEIGHT) && (tPos.y < maxheight))
+        {
+            background.GetBuffer()[(int)tPos.x + (int)tPos.y * SCRWIDTH] = SubBlend(background.GetBuffer()[(int)tPos.x + (int)tPos.y * SCRWIDTH], 0x808080);
+        }
+    }
+
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - frame_start_time).count();
 
     if (duration < time_between_Frames)
@@ -439,13 +447,11 @@ void Game::Draw()
     //Draw sprites
     for (int i = 0; i < NUM_TANKS_BLUE + NUM_TANKS_RED; i++)
     {
-
         vec2 tPos = tanks.at(i).Get_Position();
-        // tread marks
+
         if ((tPos.x >= 0) && (tPos.x < SCRWIDTH) && (tPos.y >= HEALTH_BAR_HEIGHT) && (tPos.y < maxheight))
         {
             tanks.at(i).Draw(screen);
-            background.GetBuffer()[(int)tPos.x + (int)tPos.y * SCRWIDTH] = SubBlend(background.GetBuffer()[(int)tPos.x + (int)tPos.y * SCRWIDTH], 0x808080);
         }
     }
 
