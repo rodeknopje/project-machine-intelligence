@@ -356,6 +356,7 @@ void Game::Update(float deltaTime)
 
     vector<future<void>*> futures;
 
+    start_timer();
     for (int i = 0; i < threadcount; i++)
     {
         int start = current;
@@ -369,6 +370,7 @@ void Game::Update(float deltaTime)
         // ZONDER DIT PUNTJE WERKT HET BLIJKBAAR NIET, NIET VERWIJDEREN!
         cout << '.';
     }
+    stop_timer();
 
     //Update smoke plumes
     for (Smoke& smoke : smokes)
@@ -382,7 +384,6 @@ void Game::Update(float deltaTime)
     rockets.erase(std::remove_if(rockets.begin(), rockets.end(), [](const Rocket& rocket) { return !rocket.active; }), rockets.end());
 
     handle_particle_beams();
-
     //Update explosion sprites and remove when done with remove erase idiom
     for (Explosion& explosion : explosions)
     {
@@ -574,7 +575,7 @@ void Tmpl8::Game::stop_timer()
 {
     auto stop_time = std::chrono::high_resolution_clock::now();
 
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop_time - start_time);
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop_time - start_time);
 
-    total_time += duration.count();
+    total_time += (float)duration.count();
 }
