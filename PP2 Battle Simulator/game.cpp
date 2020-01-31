@@ -162,50 +162,48 @@ void Tmpl8::Game::handle_tank_collision(int begin, SIZE_T end)
         {
             //Check tank collision and nudge tanks away from each other
             //for (auto oTank : tankgrid.get_cell((int)tank.position.x / tankgrid.cell_size, (int)tank.position.y / tankgrid.cell_size))
-            std::lock_guard<std::mutex> guard(mutex);
+
+            for (auto oTank : tankgrid.get_tanks_in_radius(2, tank.position.x, tank.position.y))
             {
 
-                for (auto oTank : tankgrid.get_tanks_in_radius(2, tank.position.x, tank.position.y))
+                //cout << "a" << endl;
+                //continue;
+                if (tank.ID == oTank->ID) continue;
+
+                vec2 dir = tank.Get_Position() - oTank->Get_Position();
+
+                float dirSquaredLen = dir.sqrLength();
+
+                //float colSquaredLen = (tank.Get_collision_radius() * tank.Get_collision_radius()) + (oTank->Get_collision_radius() * oTank->Get_collision_radius());
+                //cout << colSquaredLen << endl;
+                if (dirSquaredLen < 288)
                 {
-
-                    //cout << "a" << endl;
-                    //continue;
-                    if (tank.ID == oTank->ID) continue;
-
-                    vec2 dir = tank.Get_Position() - oTank->Get_Position();
-
-                    float dirSquaredLen = dir.sqrLength();
-
-                    //float colSquaredLen = (tank.Get_collision_radius() * tank.Get_collision_radius()) + (oTank->Get_collision_radius() * oTank->Get_collision_radius());
-                    //cout << colSquaredLen << endl;
-                    if (dirSquaredLen < 288)
-                    {
-                        tank.Push(dir.normalized(), 1.f);
-                    }
+                    std::lock_guard<std::mutex> guard(mutex);
+                    tank.Push(dir.normalized(), 1.f);
                 }
             }
 
             //Move tanks according to speed and nudges (see above) also reload
-
-            tank.Tick();
+            {
+                std::lock_guard<std::mutex> guard(mutex2);
+                tank.Tick();
+            }
 
             //Shoot at closest target if reloaded
+
+            if (tank.Rocket_Reloaded())
             {
-
-                if (tank.Rocket_Reloaded())
+                Tank& target = FindClosestEnemy(tank);
                 {
-                    {
-                        Tank& target = FindClosestEnemy(tank);
+                    std::lock_guard<std::mutex> guard(mutex3);
 
-                        rockets.push_back(Rocket(tank.position, (target.Get_Position() - tank.position).normalized() * 3, rocket_radius, tank.allignment, ((tank.allignment == RED) ? &rocket_red : &rocket_blue)));
+                    rockets.push_back(Rocket(tank.position, (target.Get_Position() - tank.position).normalized() * 3, rocket_radius, tank.allignment, ((tank.allignment == RED) ? &rocket_red : &rocket_blue)));
 
-                        tank.Reload_Rocket();
-                    }
+                    tank.Reload_Rocket();
                 }
             }
         }
     }
-    //cout << frame_count << endl;
 }
 // -----------------------------------------------------------
 // Close down application
@@ -354,10 +352,14 @@ void Tmpl8::Game::handle_rockets()
 // -----------------------------------------------------------
 void Game::Update(float deltaTime)
 {
-    //handle_tank_collision(0, tanks.size());
+    int part = 319;
+    int mod = 6;
 
-    int part = tanks.size() / threadcount;
-    int mod  = tanks.size() % threadcount;
+    // Gebruik onderstaande berekening als je het aantal tanks veranderdt.
+    // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+
+    // int part = tanks.size() / threadcount;
+    // int mod = tanks.size()  % threadcount;
 
     int current = 0;
 
@@ -370,17 +372,12 @@ void Game::Update(float deltaTime)
         int end = current + part + (--mod > 0 ? 1 : 0);
 
         current = end;
-        
+
         futures.push_back(&pool.enqueue([&]() { handle_tank_collision(start, end); }));
-        
+
         // ZONDER DIT PUNTJE WERKT HET BLIJKBAAR NIET, NIET VERWIJDEREN!
         cout << '.';
-
     }
-
-    //cout << endl;
-
-    //handle_tank_collision(0, tanks.size());
 
     //Update smoke plumes
     for (Smoke& smoke : smokes)
@@ -404,7 +401,9 @@ void Game::Update(float deltaTime)
     explosions.erase(std::remove_if(explosions.begin(), explosions.end(), [](const Explosion& explosion) { return explosion.done(); }), explosions.end());
 
     for (int i = 0; i < threadcount; i++)
+    {
         futures.at(i)->wait();
+    }
 }
 
 void Tmpl8::Game::handle_particle_beams()

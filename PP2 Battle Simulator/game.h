@@ -78,9 +78,12 @@ class Game
 
 	void sort_tanks();
 
-    std::mutex mutex;
 
 	TankGrid tankgrid = TankGrid(*this);
+
+    std::mutex mutex;
+    std::mutex mutex2;
+    std::mutex mutex3;
 
     vector<Rocket> rockets;
     vector<Smoke> smokes;
