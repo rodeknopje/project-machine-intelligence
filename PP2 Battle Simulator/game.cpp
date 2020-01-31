@@ -16,7 +16,7 @@
 
 #define MAX_FRAMES 2000
 
-#define FRAME_CAP 60
+#define FRAME_CAP 144
 
 //Global performance timer
 //M-PC     = 44306.7
@@ -183,6 +183,7 @@ void Tmpl8::Game::handle_tank_collision(int begin, SIZE_T end)
             }
 
             //Move tanks according to speed and nudges (see above) also reload
+
             tank.Tick();
 
             //Shoot at closest target if reloaded
@@ -191,7 +192,7 @@ void Tmpl8::Game::handle_tank_collision(int begin, SIZE_T end)
                 Tank& target = FindClosestEnemy(tank);
 
                 {
-                    std::lock_guard<std::mutex> guard(mutex);
+                    //std::lock_guard<std::mutex> guard(mutex);
 
                     rockets.push_back(Rocket(tank.position, (target.Get_Position() - tank.position).normalized() * 3, rocket_radius, tank.allignment, ((tank.allignment == RED) ? &rocket_red : &rocket_blue)));
                 }
@@ -212,9 +213,9 @@ void Game::Shutdown()
 
 void Tmpl8::Game::initialize_particle_beams(Particle_beam& beam)
 {
-    for (int y = beam.min_position.y - tank_radius; y < beam.max_position.y + tank_radius; y += tankgrid.cell_size)
+    for (int y = beam.min_position.y - tank_radius; y < beam.max_position.y + tank_radius; y += tankgrid.cell_size/2)
     {
-        for (int x = beam.min_position.x - tank_radius; x < beam.max_position.x + tank_radius; x += tankgrid.cell_size)
+        for (int x = beam.min_position.x - tank_radius; x < beam.max_position.x + tank_radius; x+= tankgrid.cell_size/2)
         {
             int xpos = x / tankgrid.cell_size;
             int ypos = y / tankgrid.cell_size;
@@ -311,32 +312,40 @@ void Tmpl8::Game::sort_tanks()
 // -----------------------------------------------------------
 void Game::Update(float deltaTime)
 {
-    ThreadPool pool(threadCount);
 
-    int range = (NUM_TANKS_BLUE + NUM_TANKS_RED) / threadCount;
-    int mod =   (NUM_TANKS_BLUE + NUM_TANKS_RED) % threadCount;
+    handle_tank_collision(0, tanks.size());
 
-    int current = 0;
+    //ThreadPool pool(threadCount);
 
-    vector<future<void>*> futures;
+    //vector<thread> threads;
 
-    for (size_t i = 0; i < threadCount; i++)
-    {
-        int begin   = current;
-        int end     = current + range + (mod-- > 0 ? 1 : 0);
+    //int range = (NUM_TANKS_BLUE + NUM_TANKS_RED) / threadCount;
+    //int mod = (NUM_TANKS_BLUE + NUM_TANKS_RED) % threadCount;
 
-        current = end;
+    //int current = 0;
 
-        future<void> f1 = pool.enqueue([&]() { handle_tank_collision(begin, end); });
-        // f1.get();
-        cout << i << "[" << begin << "-" << end << endl;
+    //vector<future<void>*> futures;
 
-        //futures.push_back(&f1);
-    }
+    //for (size_t i = 0; i < threadCount; i++)
+    //{
+    //    int begin = current;
 
-    for (auto f : futures)
-        f->get();
+    //    int end = current + range + (mod-- > 0 ? 1 : 0);
 
+    //    current = end;
+
+    //    //future<void> f1 = pool.enqueue([&]() { handle_tank_collision(begin, end); });
+    //    //f1.wait();
+    //    //cout << i << "[" << begin << "-" << end << endl;
+    //    // threads.push_back(thread([&] { handle_tank_collision(begin, end); }));
+    //    threads.push_back(thread(&Game::handle_tank_collision, this, begin, end));
+    //    //futures.push_back(&f1);
+    //}
+
+    ////for (auto f : futures)
+    ////    f->wait();
+    //for (auto& t : threads)
+    //    t.join();
     //future<void> f1 = pool.enqueue([&]() { handle_tank_collision(0, NUM_TANKS_BLUE); });
     //future<void> f2 = pool.enqueue([&](){handle_tank_collision(NUM_TANKS_BLUE, NUM_TANKS_BLUE + NUM_TANKS_RED);});
 
